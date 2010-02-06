@@ -48,7 +48,7 @@ void testApp::setup(){
 		m_sampleColors[i].r = ofRandom(0, 255);
 		m_sampleColors[i].g = ofRandom(0, 255);
 		m_sampleColors[i].b = ofRandom(0, 255);
-		m_sampleColors[i].a = 200;
+		m_sampleColors[i].a = 127;
 		m_numSamples[i] = 0;
 //		m_sampleVector[i].push_back(std::vector<ofxVec3f> samples);
 	}
@@ -69,8 +69,11 @@ void testApp::setup(){
 	
 	lastTagNumber = 0;
 	
-	
-	m_stateLoadMessage = "0";
+	int tags = XMLstates.getNumTags("STATE");
+	printf("states : %i\n", tags);
+	std::stringstream numstates;
+	numstates << tags;
+	m_stateLoadMessage = numstates.str();
 	//ofSetFrameRate(20);
 //	ofSoundStreamSetup(0,2,this, 44100, 256, 4);
 //	left = new float[256];
@@ -181,7 +184,7 @@ void testApp::draw()
 	{
 		for (int j = 0; j < m_numSamples[i]; ++j) 
 		{
-			ofSetColor(m_sampleColors[i].r, m_sampleColors[i].g, m_sampleColors[i].b, 127);
+			ofSetColor(m_sampleColors[i].r, m_sampleColors[i].g, m_sampleColors[i].b, m_sampleColors[i].a);
 			ofFill();
 			ofEllipse(m_sampleVector[i][j].x, m_sampleVector[i][j].y, 40, 40);
 		}
@@ -200,7 +203,7 @@ void testApp::draw()
 	ofRect(150, 1, 10,10);
 	if (showColors) {
 		for (int i = 0; i < MAX_SAMPLES; ++i) {
-			ofSetColor(m_sampleColors[i].r, m_sampleColors[i].g, m_sampleColors[i].b);
+			ofSetColor(m_sampleColors[i].r, m_sampleColors[i].g, m_sampleColors[i].b, 200);
 			ofRect(40 * i + 20 , 40, 40, 40);
 			std::stringstream strstr;
 			strstr << i;
@@ -229,10 +232,17 @@ void testApp::draw()
 	{
 		ofSetColor(255, 0, 0);
 		//ofNoFill();
-		ofRect(10, ofGetHeight()-100, 20, 20);
+		ofRect(10, ofGetHeight()-130, 20, 20);
 		//ofFill();
 		ofSetColor(0, 0, 0);
-		ofDrawBitmapString("push square to save current state. "+m_stateLoadMessage+" states saved.", 40, ofGetHeight()-86);
+		ofDrawBitmapString("push square to save current state. "+m_stateLoadMessage+" states saved.", 40, ofGetHeight()-116);
+		ofSetColor(0, 0, 0);
+		std::string texttext = "Current state: ";
+		std::stringstream strstrstr;
+		strstrstr << texttext;
+		strstrstr << m_currentState;
+		strstrstr << "\n";
+		ofDrawBitmapString(strstrstr.str(), 10, ofGetHeight()-90);
 //		stream << "OSC messages:\n";
 //		for (unsigned int i; i < m_debugMessages.size(); ++i) {
 //			stream << "[" << i << "] :";
@@ -329,7 +339,10 @@ void testApp::keyPressed  (int key){
 	}
 	else if (key == 'd') 
 	{
-		debugMode = !debugMode;
+		if (!helpMode) {
+			printf("debug mode\n");
+			debugMode = !debugMode;
+		}
 	}
 	else if (key == 'f') 
 	{
@@ -341,13 +354,15 @@ void testApp::keyPressed  (int key){
 			m_sampleColors[i].r = ofRandom(0, 255);
 			m_sampleColors[i].g = ofRandom(0, 255);
 			m_sampleColors[i].b = ofRandom(0, 255);
-			m_sampleColors[i].a = 200;
+			m_sampleColors[i].a = 127;
 		}
 	}
 	else if (key == 'h') 
 	{
-		printf("helpmode\n");
-		helpMode = !helpMode;
+		if (!debugMode) {
+			printf("help mode\n");
+			helpMode = !helpMode;
+		}
 	}
 	else if (key == 'm') 
 	{
@@ -541,7 +556,7 @@ void testApp::saveCurrentState()
 		{
 			
 			XMLstates.addTag("NUMBER");
-			XMLstates.setValue("NUMBER", lastTagNumber, 0);
+			XMLstates.setValue("NUMBER", lastTagNumber+1, 0);
 			//now we will add a pt tag - with two
 			//children - X and Y
 			XMLstates.addTag("LINE");

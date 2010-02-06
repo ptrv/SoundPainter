@@ -50,6 +50,8 @@ public:
 //	int 	drawCounter;
 
 	ofxVec3f	pts[MAX_N_PTS];
+	ofxVec3f	ptsBackup[MAX_N_PTS];
+
 	int			nPts;
 
 //private:
@@ -71,6 +73,8 @@ public:
 	
 	std::vector<ofxVec3f> m_samplVec;
 	std::vector<ofxVec3f> m_sampleVector[MAX_SAMPLES];
+	std::vector<ofxVec3f> m_sampleVectorBackup[MAX_SAMPLES];
+	
 	std::vector<ofxVec3f> m_sampleVectorPopped[MAX_SAMPLES];
 	std::vector<int> m_vecColorR;
 	std::vector<int> m_vecColorG;
