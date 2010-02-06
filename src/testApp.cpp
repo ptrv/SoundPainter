@@ -1,4 +1,9 @@
+/*=======================================================
+ Copyright (c) Peter Vasil, 2010
+ =======================================================*/
+
 #include "testApp.h"
+
 #include <iostream>
 //--------------------------------------------------------------
 void testApp::setup(){
@@ -74,13 +79,8 @@ void testApp::setup(){
 	std::stringstream numstates;
 	numstates << tags;
 	m_stateLoadMessage = numstates.str();
-	//ofSetFrameRate(20);
-//	ofSoundStreamSetup(0,2,this, 44100, 256, 4);
-//	left = new float[256];
-//	right = new float[256];
-//
-//	bufferCounter = 0;
-//	drawCounter = 0;
+	
+	m_currentState = 0;
 }
 
 //--------------------------------------------------------------
@@ -88,14 +88,6 @@ void testApp::update(){
 
 	if (m_run)
 	{
-		//int prevTime = m_runInterval;
-//		m_runInterval = ofGetElapsedTimeMillis();
-//		float dt =(float) m_runInterval - (float)m_prevTime;
-//		m_prevTime = m_runInterval;
-//		if ( dt > 2 )
-//		{
-//			++m_BallPos;
-//		}
 		++m_BallPos;
 		//ofSleepMillis(40);
 
@@ -136,30 +128,6 @@ void testApp::update(){
 //--------------------------------------------------------------
 void testApp::draw()
 {
-//	// draw the left:
-//	ofSetColor(0x333333);
-//	ofRect(100,100,256,200);
-//	ofSetColor(0xFFFFFF);
-//	for (int i = 0; i < 256; i++){
-//		ofLine(100+i,200,100+i,200+left[i]*100.0f);
-//	}
-//
-//	// draw the right:
-//	ofSetColor(0x333333);
-//	ofRect(600,100,256,200);
-//	ofSetColor(0xFFFFFF);
-//	for (int i = 0; i < 256; i++){
-//		ofLine(600+i,200,600+i,200+right[i]*100.0f);
-//	}
-//
-//
-//
-//	ofSetColor(0x333333);
-//	drawCounter++;
-//	char reportString[255];
-//	sprintf(reportString, "buffers received: %i\ndraw routines called: %i\n", bufferCounter,drawCounter);
-//	ofDrawBitmapString(reportString,80,380);
-
 
 	//=========================================
 	ofSetColor(0x000000);
@@ -243,27 +211,14 @@ void testApp::draw()
 		strstrstr << m_currentState;
 		strstrstr << "\n";
 		ofDrawBitmapString(strstrstr.str(), 10, ofGetHeight()-90);
-//		stream << "OSC messages:\n";
-//		for (unsigned int i; i < m_debugMessages.size(); ++i) {
-//			stream << "[" << i << "] :";
-//			stream << m_debugMessages[i];
-//			if (i != m_debugMessages.size()-1) {stream << ", ";};
-//		}
+
 		ofDrawBitmapString(m_debugMessage, 10, ofGetHeight() - 50);
-	
+		
+	}
+	if (debugMode || helpMode) {
+		ofDrawBitmapString("(c) Peter Vasil, 2010", ofGetWidth()-200, ofGetHeight()-10);
 	}
 }
-//static float adder = 0;
-////--------------------------------------------------------------
-//void testApp::audioReceived 	(float * input, int bufferSize, int nChannels){
-//	// samples are "interleaved"
-//	for (int i = 0; i < bufferSize; i++){
-//		left[i] = input[i*2];
-//		right[i] = input[i*2+1];
-//	}
-//	bufferCounter++;
-//
-//}
 //--------------------------------------------------------------
 void testApp::keyPressed  (int key){
 
@@ -368,6 +323,14 @@ void testApp::keyPressed  (int key){
 	{
 		showOscDebugPosition = !showOscDebugPosition;
 	}
+	else if (key == OF_KEY_UP) 
+	{
+		printf("current state : %i keyup\n", m_currentState);
+	}
+	else if (key == OF_KEY_DOWN)
+	{
+		printf("current state : %i keydown\n", m_currentState);
+	}
 	
 }
 
@@ -420,16 +383,7 @@ void testApp::mousePressed(int x, int y, int button)
 			tmpVec.y = y;
 			m_sampleVector[m_currentSample].push_back(tmpVec);
 			
-			//m_samplVec.push_back(tmpVec);
-			//		m_samplColorR = (float)ofRandom(0.0, 255.0f);
-			//		m_samplColorG = (float)ofRandom(0.0, 255.0f);
-			//		m_samplColorB = (float)ofRandom(0.0, 255.0f);
-			//		m_vecColorR.push_back(m_samplColorR);
-			//		m_vecColorG.push_back(m_samplColorG);
-			//		m_vecColorB.push_back(m_samplColorB);
-			++m_numSampls;
 			++m_numSamples[m_currentSample];
-			playStatus.push_back(false);
 			m_playStatuses[m_currentSample].push_back(false);
 		}
 		else
@@ -477,10 +431,6 @@ void testApp::checkPlayPos(int x, int y)
 				}
 				else
 				{
-					//			ofxOscMessage m;
-					//			m.setAddress( "/play" );
-					//			m.addIntArg(0);
-					//			sender.sendMessage ( m );
 					isPlaying = true;
 					m_playStatuses[j][i] = false;
 				}
@@ -518,19 +468,19 @@ void testApp::setOscDebugMessage(ofxOscMessage message)
 
 void testApp::loadState(int state)
 {
-	//-----------
-	//the string is printed at the top of the app
-	//to give the user some feedback
-	message = "loading mySettings.xml";
-	
-	//we load our settings file
-	//if it doesn't exist we can still make one
-	//by hitting the 's' key
-	if( XMLstates.loadFile("savedStates.xml") ){
-		message = "savedStates.xml loaded!";
-	}else{
-		message = "unable to load savedStates.xml check data/ folder";
-	}
+//	//-----------
+//	//the string is printed at the top of the app
+//	//to give the user some feedback
+//	message = "loading mySettings.xml";
+//	
+//	//we load our settings file
+//	//if it doesn't exist we can still make one
+//	//by hitting the 's' key
+//	if( XMLstates.loadFile("savedStates.xml") ){
+//		message = "savedStates.xml loaded!";
+//	}else{
+//		message = "unable to load savedStates.xml check data/ folder";
+//	}
 	
 	int numStateTags = XMLstates.getNumTags("STATE:NUMBER");
 	
@@ -539,10 +489,29 @@ void testApp::loadState(int state)
 		//XML.pushTag("STATE", numStateTags-1);
 		XMLstates.pushTag("STATE", state-1);
 		
-		int stateNum = XMLstates.getValue("NUMBER", 0, state);
+		int stateNum = XMLstates.getValue("NUMBER", 0);
 		
 		//XMLstates.pushTag(, )
-		int numPtTags = XMLstates.getNumTags("LINE:PT");
+		//int numPtTags = XMLstates.getNumTags("LINE:PT");
+		XMLstates.pushTag("LINE", 0);
+		int numPtTags = XMLstates.getNumTags("PT");
+		for (int i = 0; i < MAX_N_PTS; ++i) {
+			pts[i].x = 0;
+			pts[i].y = 0;
+		}
+		for (int i = 0; i < numPtTags; ++i) {
+			pts[i].x = XMLstates.getValue("PT:X", 0);
+			pts[i].y = XMLstates.getValue("PT:Y", 0);
+		}
+		XMLstates.popTag();
+		int numSampleTags = XMLstates.getNumTags("SAMPLE");
+//		m_sampleVectorBackup = m_sampleVector;
+//		m_sampleVector.clear();
+//		m_playStatusesBackup = m_playStatuses;
+		
+//		for (int i = 0; i < numSampleTags; ++i) {
+//			
+//		}
 		
 	}
 }

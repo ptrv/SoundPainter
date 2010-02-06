@@ -1,14 +1,12 @@
+/*=======================================================
+ Copyright (c) Peter Vasil, 2010
+=======================================================*/
+
 #ifndef _TEST_APP
 #define _TEST_APP
 
 
 #include "ofMain.h"
-
-//#define OF_ADDON_USING_OFXOSC
-
-//#define OF_ADDON_USING_OFXVECTORMATH
-
-//#include "ofAddons.h"
 
 #include "ofxOsc.h"
 #include "ofxVectorMath.h"
@@ -89,6 +87,7 @@ public:
 	bool helpMode;
 	std::vector<bool> playStatus;
 	std::vector<bool> m_playStatuses[MAX_SAMPLES];
+	std::vector<bool> m_playStatusesBackup[MAX_SAMPLES];
 
 	int m_currentSample;
 	ofColor m_sampleColors[MAX_SAMPLES];

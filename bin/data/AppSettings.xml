@@ -6,6 +6,6 @@
 		<!-- <port>12346</port> -->
 	</osc>
 	<debug>
-		<position>1</position>
+		<position>0</position>
 	</debug>
 </settings>
