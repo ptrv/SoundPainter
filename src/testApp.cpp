@@ -27,6 +27,7 @@ void testApp::setup(){
     oschost = XML.getValue("settings:osc:host", "localhost");
     oscport = XML.getValue("settings:osc:port", 57120);
 	nPts = 0;
+	nPtsBackup = 0;
 	m_runInterval = 0;
 	m_prevTime = 0;
 	ofBackground(255, 255, 255);
@@ -325,10 +326,24 @@ void testApp::keyPressed  (int key){
 	}
 	else if (key == OF_KEY_UP) 
 	{
+		++m_currentState;
+		
+		if (m_currentState > XMLstates.getNumTags("STATE"))
+		{
+			m_currentState = 0;
+		}
+		loadState(m_currentState);
 		printf("current state : %i keyup\n", m_currentState);
+		
 	}
 	else if (key == OF_KEY_DOWN)
 	{
+		--m_currentState;
+		if (m_currentState < 0)
+		{
+			m_currentState =  XMLstates.getNumTags("STATE");
+		}
+		loadState(m_currentState);
 		printf("current state : %i keydown\n", m_currentState);
 	}
 	
@@ -356,6 +371,7 @@ void testApp::mouseDragged(int x, int y, int button){
 			pts[nPts].x = x;
 			pts[nPts].y = y;
 			nPts++;
+			nPtsBackup = nPts;
 		}
 	}
 
@@ -369,7 +385,7 @@ void testApp::mousePressed(int x, int y, int button)
 	{
 		//ofRect(10, ofGetHeight()-100, 20, 20);
 		int h = ofGetHeight();
-		if (x >= 10 && x <= 30 && y >= (h-100) && y <= (h-80) ) {
+		if (x >= 10 && x <= 30 && y >= (h-130) && y <= (h-110) ) {
 			printf("pushed save square!\n");
 			saveCurrentState();
 		}
@@ -382,13 +398,16 @@ void testApp::mousePressed(int x, int y, int button)
 			tmpVec.x = x;
 			tmpVec.y = y;
 			m_sampleVector[m_currentSample].push_back(tmpVec);
+			m_sampleVectorBackup[m_currentSample].push_back(tmpVec);
 			
 			++m_numSamples[m_currentSample];
 			m_playStatuses[m_currentSample].push_back(false);
+			//m_playStatusesBackup[m_currentSample].push_back(false);			
 		}
 		else
 		{
 			nPts = 0;
+			nPtsBackup = nPts;
 		}
 	}
 }
@@ -405,18 +424,13 @@ void testApp::checkPlayPos(int x, int y)
 	for (int j = 0; j<MAX_SAMPLES; ++j) 
 	{
 		if (m_numSamples[j] > 0) {
-			
-			
 			for ( unsigned int i = 0; i < m_sampleVector[j].size(); ++i )
 			{
-				
-				
 				if ( (x > m_sampleVector[j][i].x - 40 && x < m_sampleVector[j][i].x + 40) &&
 					(y > m_sampleVector[j][i].y - 40 && y < m_sampleVector[j][i].y + 40) )
 				{
 					if(isPlaying && !m_playStatuses[j][i])
 					{
-						
 						ofxOscMessage m;
 						m.setAddress( "/play" );
 						//m.addStringArg("sample");
@@ -425,9 +439,7 @@ void testApp::checkPlayPos(int x, int y)
 						isPlaying = false;
 						m_playStatuses[j][i] = true;
 						setOscDebugMessage(m);
-						
 					}
-					
 				}
 				else
 				{
@@ -436,7 +448,6 @@ void testApp::checkPlayPos(int x, int y)
 				}
 			}
 		}
-		
 	}
 }
 
@@ -487,24 +498,51 @@ void testApp::loadState(int state)
 	if(numStateTags > 0 && numStateTags > state)
 	{
 		//XML.pushTag("STATE", numStateTags-1);
-		XMLstates.pushTag("STATE", state-1);
+		XMLstates.pushTag("STATE", state);
 		
 		int stateNum = XMLstates.getValue("NUMBER", 0);
 		
 		//XMLstates.pushTag(, )
 		//int numPtTags = XMLstates.getNumTags("LINE:PT");
 		XMLstates.pushTag("LINE", 0);
+		nPts = XMLstates.getValue("PTNUM", 0);
 		int numPtTags = XMLstates.getNumTags("PT");
 		for (int i = 0; i < MAX_N_PTS; ++i) {
 			pts[i].x = 0;
 			pts[i].y = 0;
 		}
 		for (int i = 0; i < numPtTags; ++i) {
-			pts[i].x = XMLstates.getValue("PT:X", 0);
-			pts[i].y = XMLstates.getValue("PT:Y", 0);
+			pts[i].x = XMLstates.getValue("PT:X", 0, i);
+			pts[i].y = XMLstates.getValue("PT:Y", 0, i);
+		}
+		for (int i = 0; i < MAX_SAMPLES; ++i) {
+			//m_sampleVectorBackup[i] = m_sampleVector[i];
+			m_sampleVector[i].clear();
+			//m_playStatusesBackup[i] = m_playStatuses[i];
+			//m_playStatuses[i].clear();
 		}
 		XMLstates.popTag();
 		int numSampleTags = XMLstates.getNumTags("SAMPLE");
+		for (int i = 0; i < numStateTags; ++i) {
+			int snum = XMLstates.getValue("SAMPLE:NUMBER",0,i);
+			int amount = XMLstates.getValue("SAMPLE:AMOUNT", 0, i);
+			m_sampleVector[snum].clear();
+			//m_playStatuses[snum].clear();
+			XMLstates.pushTag("SAMPLE");
+			for (int j = 0; j < amount; ++j) {
+				//XMLstates.pushTag("SAMPLE", j);
+				ofxVec3f tmpVec;
+				float x = XMLstates.getValue("DOT:X", 0, j);
+				float y = XMLstates.getValue("DOT:Y", 0, j);
+				tmpVec.set(x, y, 0);
+				m_sampleVector[snum].push_back(tmpVec);
+				//m_playStatuses[snum].push_back(true);
+				
+			}
+			XMLstates.popTag();
+//			m_sampleVector[
+		}
+		XMLstates.popTag();
 //		m_sampleVectorBackup = m_sampleVector;
 //		m_sampleVector.clear();
 //		m_playStatusesBackup = m_playStatuses;
@@ -514,6 +552,18 @@ void testApp::loadState(int state)
 //		}
 		
 	}
+	if (state == 0)
+	{
+		for (int i = 0; i < MAX_SAMPLES; ++i) {
+			nPts = nPtsBackup;
+			m_sampleVector[i] = m_sampleVectorBackup[i];
+			m_sampleVectorBackup[i].clear();
+//			m_playStatuses[i] = m_playStatusesBackup[i];
+//			m_playStatusesBackup[i].clear();
+		}
+		
+	}
+	
 }
 
 void testApp::saveCurrentState()
@@ -530,6 +580,8 @@ void testApp::saveCurrentState()
 			//children - X and Y
 			XMLstates.addTag("LINE");
 			XMLstates.pushTag("LINE", 0);
+			XMLstates.addTag("PTNUM");
+			XMLstates.setValue("PTNUM", nPts);
 			
 			for (int i = 0; i < MAX_N_PTS; ++i) 
 			{

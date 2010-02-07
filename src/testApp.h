@@ -51,6 +51,7 @@ public:
 	ofxVec3f	ptsBackup[MAX_N_PTS];
 
 	int			nPts;
+	int			nPtsBackup;
 
 //private:
 	ofxOscSender sender;
