@@ -43,7 +43,7 @@ public:
 	void setOscDebugMessage(ofxOscMessage message);
 	void saveCurrentState();
 	void loadState(int state);
-	
+	void readStates();
 	void clearAll();
 
 //	void audioReceived 	(float * input, int bufferSize, int nChannels);

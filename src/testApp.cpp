@@ -44,7 +44,11 @@ void testApp::setup(){
 	debugMode = false;
 	showColors = false;
 	helpMode = false;
-	usageMode = false;
+	if(XML.getValue("settings:startup:aboutscreen", 0))
+		usageMode = true;
+	else
+		usageMode = false;
+	
 	int dbgPos = XML.getValue("settings:debug:position", 1);
 	if (dbgPos > 0) 
 		showOscDebugPosition = true;
@@ -94,7 +98,7 @@ void testApp::setup(){
 	
 	m_currentState = 0;
 	
-	m_fontTitle.loadFont("Sudbury_Basin_3D.ttf", 32);
+	m_fontTitle.loadFont("Sudbury_Basin_3D.ttf", 50);
 	m_fontOfVersion.loadFont("mono.ttf", 7);
 	m_fontText.loadFont("mono.ttf", 10);
 }
@@ -158,7 +162,7 @@ void testApp::draw()
 		m_fontText.drawString("put sampledots on it. Each color represents a sample.", rmargin, 190);
 		m_fontText.drawString("You can put many sampledots with the same color on the", rmargin, 210);
 		m_fontText.drawString("canvas. But SoundPainter does not play the samples itself.", rmargin, 230);
-		m_fontText.drawString("OSC messages are sent to an listening Application", rmargin, 250);
+		m_fontText.drawString("OSC messages are sent to a listening Application", rmargin, 250);
 		m_fontText.drawString("(e.g. Pure data, SuperCollider, Max/MSP), which plays the", rmargin, 270);
 		m_fontText.drawString("sound files.", rmargin, 290);
 		
@@ -235,9 +239,11 @@ void testApp::draw()
 			stream << "Change sample colors:---------------- g\n";
 			stream << "Debug mode:-------------------------- d\n";
 			stream << "Switch between saved states:--------- + / -\n";
-			stream << "Show about screen:------------------- u\n";
+			stream << "Save current state (debug mode):----- w\n";
+			stream << "Reload states (debug mode):---------- e\n";
+			stream << "Show about screen:------------------- return\n";
 			stream << "This menu:--------------------------- h\n";
-			ofDrawBitmapString(stream.str(), 10, 130);
+			ofDrawBitmapString(stream.str(), 10, 150);
 		}
 		if (debugMode)
 		{
@@ -246,22 +252,24 @@ void testApp::draw()
 			ofRect(10, ofGetHeight()-130, 20, 20);
 			//ofFill();
 			ofSetColor(0, 0, 0);
-			ofDrawBitmapString("push square to save current state. "+m_stateLoadMessage+" states saved.", 40, ofGetHeight()-116);
+			ofDrawBitmapString("push red square to save current state or 'w' on your keyboard.", 40, ofGetHeight()-116);
 			ofSetColor(0, 0, 0);
 			std::string texttext = "Current state: ";
 			std::stringstream strstrstr;
 			strstrstr << texttext;
 			strstrstr << m_currentState;
+			strstrstr << ", Saved states: ";
+			strstrstr << m_stateLoadMessage;
 			strstrstr << "\n";
 			ofDrawBitmapString(strstrstr.str(), 10, ofGetHeight()-90);
 			
 			ofDrawBitmapString(m_debugMessage, 10, ofGetHeight() - 50);
 			
 		}
-	}
-	if (debugMode || helpMode) {
-		ofSetColor(0, 0, 0);
-		ofDrawBitmapString("(c) Peter Vasil, 2010", ofGetWidth()-200, ofGetHeight()-10);
+		if (debugMode || helpMode) {
+			ofSetColor(0, 0, 0);
+			ofDrawBitmapString("Peter Vasil, 2010", ofGetWidth()-180, ofGetHeight()-10);
+		}
 	}
 }
 //--------------------------------------------------------------
@@ -343,10 +351,10 @@ void testApp::keyPressed  (int key){
 	}
 	else if (key == 'd') 
 	{
-		if (!helpMode) {
+//		if (!helpMode) {
 			if (debugOutput) {printf("debug mode\n");}
 			debugMode = !debugMode;
-		}
+//		}
 	}
 	else if (key == 'f') 
 	{
@@ -363,10 +371,10 @@ void testApp::keyPressed  (int key){
 	}
 	else if (key == 'h') 
 	{
-		if (!debugMode) {
+//		if (!debugMode) {
 			if (debugOutput) {printf("help mode\n");}
 			helpMode = !helpMode;
-		}
+//		}
 	}
 	else if (key == 'm') 
 	{
@@ -381,15 +389,7 @@ void testApp::keyPressed  (int key){
 			}
 			
 			for (int i = 0; i < nPts; ++i) {
-//				if (pts[i] != 0) {
-//					ptsBackup[i] = pts[i];
-//				}
-//				else 
-//				{
-//					break;
-//				}
 				ptsBackup[i] = pts[i];
-				//m_sampleVectorBackup[i] = m_sampleVector[i];
 			}
 			for (int i = 0; i < MAX_SAMPLES; ++i) {
 				m_sampleVectorBackup[i] = m_sampleVector[i];
@@ -416,15 +416,7 @@ void testApp::keyPressed  (int key){
 			}
 			
 			for (int i = 0; i < nPts; ++i) {
-				//				if (pts[i] != 0) {
-				//					ptsBackup[i] = pts[i];
-				//				}
-				//				else 
-				//				{
-				//					break;
-				//				}
 				ptsBackup[i] = pts[i];
-				//m_sampleVectorBackup[i] = m_sampleVector[i];
 			}
 			for (int i = 0; i < MAX_SAMPLES; ++i) {
 				m_sampleVectorBackup[i] = m_sampleVector[i];
@@ -440,11 +432,24 @@ void testApp::keyPressed  (int key){
 		loadState(m_currentState);
 		if (debugOutput) {printf("current state : %i keydown\n", m_currentState);}
 	}
-	else if (key == 'u') 
+	else if (key == OF_KEY_RETURN) 
 	{
 		usageMode = !usageMode;
 	}
-	
+	else if (key == 'w') 
+	{
+		if (debugMode) {
+			saveCurrentState();
+			if (debugOutput) {printf("saved current state!\n");}
+		}
+	}
+	else if (key == 'e')
+	{
+		if (debugMode) 
+		{
+			readStates();
+		}
+	}
 }
 
 //--------------------------------------------------------------
@@ -484,9 +489,9 @@ void testApp::mousePressed(int x, int y, int button)
 		//ofRect(10, ofGetHeight()-100, 20, 20);
 		int h = ofGetHeight();
 		if (x >= 10 && x <= 30 && y >= (h-130) && y <= (h-110) ) {
-			if (debugOutput) {printf("saved current state!\n");}
 			saveCurrentState();
 			//clearAll();
+			if (debugOutput) {printf("saved current state!\n");}
 		}
 	}	
 	if ( m_run && m_currentSample < MAX_SAMPLES)
@@ -705,6 +710,15 @@ void testApp::saveCurrentState()
 		m_stateLoadMessage = strstr.str();
 //	}
 }
+void testApp::readStates()
+{
+	XMLstates.loadFile(m_savedStatesFileName);
+	std::stringstream tags;
+	tags << XMLstates.getNumTags("STATE");
+	m_stateLoadMessage = tags.str();
+	if(debugOutput){std::cout << "Reloaded states file with " << m_stateLoadMessage << " states" << std::endl;};
+}
+
 void testApp::clearAll()
 {
 	nPts = 0;

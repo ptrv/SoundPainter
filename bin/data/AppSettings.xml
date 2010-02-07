@@ -13,4 +13,7 @@
 		<position>0</position>
 		<sysout>1</sysout>
 	</debug>
+	<startup>
+		<aboutscreen>1</aboutscreen>
+	</startup>
 </settings>
