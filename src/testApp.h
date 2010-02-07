@@ -12,6 +12,10 @@
 #include "ofxVectorMath.h"
 #include "ofxXmlSettings.h"
 
+#define APP_VERSION_MAJOR 1
+#define APP_VERSION_MINOR 0
+#define APP_AUTHOR "Peter Vasil, 2010"
+
 #define MAX_N_PTS         1500
 
 #define HOST "localhost"
@@ -101,6 +105,12 @@ public:
 	int lastTagNumber;
 	
 	bool debugOutput;
+	bool usageMode;
+	ofTrueTypeFont	m_fontTitle;
+	ofTrueTypeFont	m_fontOfVersion;
+	ofTrueTypeFont	m_fontText;
+	
+	std::string m_versionString;
 
 };
 

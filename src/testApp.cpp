@@ -8,6 +8,9 @@
 //--------------------------------------------------------------
 void testApp::setup(){
 
+	std::stringstream versionStr;
+	versionStr << APP_VERSION_MAJOR << "." << APP_VERSION_MINOR;
+	m_versionString = versionStr.str();
     //-----------
 	//the string is printed at the top of the app
 	//to give the user some feedback
@@ -41,6 +44,7 @@ void testApp::setup(){
 	debugMode = false;
 	showColors = false;
 	helpMode = false;
+	usageMode = false;
 	int dbgPos = XML.getValue("settings:debug:position", 1);
 	if (dbgPos > 0) 
 		showOscDebugPosition = true;
@@ -89,6 +93,9 @@ void testApp::setup(){
 	
 	m_currentState = 0;
 	
+	m_fontTitle.loadFont("Sudbury_Basin_3D.ttf", 32);
+	m_fontOfVersion.loadFont("mono.ttf", 7);
+	m_fontText.loadFont("mono.ttf", 10);
 }
 
 //--------------------------------------------------------------
@@ -138,94 +145,121 @@ void testApp::draw()
 {
 
 	//=========================================
-	ofSetColor(0x000000);
-	ofNoFill();
-	ofBeginShape();
-	for (int i = 0; i < nPts; i++){
-		ofVertex(pts[i].x, pts[i].y);
+	if (usageMode)
+	{
+		int rmargin = 20;
+		ofSetColor(0x000000);
+		m_fontTitle.drawString("SoundPainter", rmargin, 100);
+		
+		m_fontOfVersion.drawString("version "+m_versionString+", openFrameworks 0061, "+APP_AUTHOR, rmargin, 130);
+		
+		m_fontText.drawString("Paint program where you draw your musical timeline, and", rmargin, 170);
+		m_fontText.drawString("put sampledots on it. Each color represents a sample.", rmargin, 190);
+		m_fontText.drawString("You can put many sampledots with the same color on the", rmargin, 210);
+		m_fontText.drawString("canvas. But SoundPainter does not play the samples itself.", rmargin, 230);
+		m_fontText.drawString("OSC messages are sent to an listening Application", rmargin, 250);
+		m_fontText.drawString("(e.g. Pure data, SuperCollider, Max/MSP), which plays the", rmargin, 270);
+		m_fontText.drawString("sound files.", rmargin, 290);
+		
+		m_fontText.drawString("The Osc Messages are:", rmargin, 350);
+		m_fontText.drawString("- Sample trigger:   /play <sample number>", rmargin, 370);
+		m_fontText.drawString("- Dot position:     /fx positionx <actual x> positiony <actual y>", rmargin, 390);
+		
+		//m_fontText.drawString("", rmargin, 410);
 	}
-	ofEndShape();
-
-	if (m_run) {
+	else
+	{
+		ofSetColor(0x000000);
+		ofNoFill();
 		ofBeginShape();
-		ofSetColor(0, 0, 0);
-		ofFill();
-		ofEllipse(pts[m_BallPos].x, pts[m_BallPos].y, 15, 15);
+		for (int i = 0; i < nPts; i++){
+			ofVertex(pts[i].x, pts[i].y);
+		}
 		ofEndShape();
-	}
-
-	ofEnableAlphaBlending();
-	ofBeginShape();
-	for ( int i = 0; i < MAX_SAMPLES; ++i )
-	{
-		for (int j = 0; j < m_numSamples[i]; ++j) 
-		{
-			ofSetColor(m_sampleColors[i].r, m_sampleColors[i].g, m_sampleColors[i].b, m_sampleColors[i].a);
+		
+		if (m_run) {
+			ofBeginShape();
+			ofSetColor(0, 0, 0);
 			ofFill();
-			ofEllipse(m_sampleVector[i][j].x, m_sampleVector[i][j].y, 40, 40);
-		}
-	}
-	ofEndShape();
-// -----------------------------------------------------------------------------
-
-	ofSetColor(0, 0, 0);
-	std::string text = "Current sample: ";
-	std::stringstream strstr;
-	strstr << text;
-	strstr << m_currentSample;
-	ofDrawBitmapString(strstr.str(), 10, 10);
-	ofSetColor(m_sampleColors[m_currentSample].r, m_sampleColors[m_currentSample].g, m_sampleColors[m_currentSample].b);
-	ofFill();
-	ofRect(150, 1, 10,10);
-	if (showColors) {
-		for (int i = 0; i < MAX_SAMPLES; ++i) {
-			ofSetColor(m_sampleColors[i].r, m_sampleColors[i].g, m_sampleColors[i].b, 200);
-			ofRect(40 * i + 20 , 40, 40, 40);
-			std::stringstream strstr;
-			strstr << i;
-			ofDrawBitmapString(strstr.str(), 40*i + 20, 90);
+			ofEllipse(pts[m_BallPos].x, pts[m_BallPos].y, 15, 15);
+			ofEndShape();
 		}
 		
-	}
-	if (helpMode) {
-		ofSetColor(0, 0, 0);
-		std::stringstream stream;
-		stream << "Keyboard navigation:\n\n";
-		stream << "Start/Stop (play mode/draw mode):---- s\n";
-		stream << "Set current sample:------------------ 0 - 9\n";
-		stream << "Remove all dots for current sample:-- r\n";
-		stream << "Remove last dot from current sample:- z\n";
-		stream << "Put last removed dot back:----------- shift + z\n";
-		stream << "Remove all dots:--------------------- c\n";
-		stream << "Remove all dots and line:------------ shift + c\n";
-		stream << "Fullscreen mode:--------------------- shift + F\n";
-		stream << "Show sample colors:------------------ f\n";
-		stream << "Change sample colors:---------------- g\n";
-		stream << "Debug mode:-------------------------- d\n";
-		stream << "Switch between saved states:--------- + / -\n";
-		stream << "This menu:--------------------------- h\n";
-		ofDrawBitmapString(stream.str(), 10, 130);
-	}
-	if (debugMode)
-	{
-		ofSetColor(255, 0, 0);
-		//ofNoFill();
-		ofRect(10, ofGetHeight()-130, 20, 20);
-		//ofFill();
-		ofSetColor(0, 0, 0);
-		ofDrawBitmapString("push square to save current state. "+m_stateLoadMessage+" states saved.", 40, ofGetHeight()-116);
-		ofSetColor(0, 0, 0);
-		std::string texttext = "Current state: ";
-		std::stringstream strstrstr;
-		strstrstr << texttext;
-		strstrstr << m_currentState;
-		strstrstr << "\n";
-		ofDrawBitmapString(strstrstr.str(), 10, ofGetHeight()-90);
-
-		ofDrawBitmapString(m_debugMessage, 10, ofGetHeight() - 50);
+		ofEnableAlphaBlending();
+		ofBeginShape();
+		for ( int i = 0; i < MAX_SAMPLES; ++i )
+		{
+			for (int j = 0; j < m_numSamples[i]; ++j) 
+			{
+				ofSetColor(m_sampleColors[i].r, m_sampleColors[i].g, m_sampleColors[i].b, m_sampleColors[i].a);
+				ofFill();
+				ofEllipse(m_sampleVector[i][j].x, m_sampleVector[i][j].y, 40, 40);
+			}
+		}
+		ofEndShape();
+		// -----------------------------------------------------------------------------
 		
+		ofSetColor(0, 0, 0);
+		std::string text = "Current sample: ";
+		std::stringstream strstr;
+		strstr << text;
+		strstr << m_currentSample;
+		ofDrawBitmapString(strstr.str(), 10, 10);
+		ofSetColor(m_sampleColors[m_currentSample].r, m_sampleColors[m_currentSample].g, m_sampleColors[m_currentSample].b);
+		ofFill();
+		ofRect(150, 1, 10,10);
+		if (showColors) {
+			for (int i = 0; i < MAX_SAMPLES; ++i) {
+				ofSetColor(m_sampleColors[i].r, m_sampleColors[i].g, m_sampleColors[i].b, 200);
+				ofRect(40 * i + 20 , 40, 40, 40);
+				std::stringstream strstr;
+				strstr << i;
+				ofDrawBitmapString(strstr.str(), 40*i + 20, 90);
+			}
+			
+		}
+		if (helpMode) {
+			ofSetColor(0, 0, 0);
+			std::stringstream stream;
+			stream << "Keyboard navigation:\n\n";
+			stream << "Start/Stop (play mode/draw mode):---- s\n";
+			stream << "Set current sample:------------------ 0 - 9\n";
+			stream << "Remove all dots for current sample:-- r\n";
+			stream << "Remove last dot from current sample:- z\n";
+			stream << "Put last removed dot back:----------- shift + z\n";
+			stream << "Remove all dots:--------------------- c\n";
+			stream << "Remove all dots and line:------------ shift + c\n";
+			stream << "Fullscreen mode:--------------------- shift + F\n";
+			stream << "Show sample colors:------------------ f\n";
+			stream << "Change sample colors:---------------- g\n";
+			stream << "Debug mode:-------------------------- d\n";
+			stream << "Switch between saved states:--------- + / -\n";
+			stream << "Show about screen:------------------- u\n";
+			stream << "This menu:--------------------------- h\n";
+			ofDrawBitmapString(stream.str(), 10, 130);
+		}
+		if (debugMode)
+		{
+			ofSetColor(255, 0, 0);
+			//ofNoFill();
+			ofRect(10, ofGetHeight()-130, 20, 20);
+			//ofFill();
+			ofSetColor(0, 0, 0);
+			ofDrawBitmapString("push square to save current state. "+m_stateLoadMessage+" states saved.", 40, ofGetHeight()-116);
+			ofSetColor(0, 0, 0);
+			std::string texttext = "Current state: ";
+			std::stringstream strstrstr;
+			strstrstr << texttext;
+			strstrstr << m_currentState;
+			strstrstr << "\n";
+			ofDrawBitmapString(strstrstr.str(), 10, ofGetHeight()-90);
+			
+			ofDrawBitmapString(m_debugMessage, 10, ofGetHeight() - 50);
+			
+		}
 	}
 	if (debugMode || helpMode) {
+		ofSetColor(0, 0, 0);
 		ofDrawBitmapString("(c) Peter Vasil, 2010", ofGetWidth()-200, ofGetHeight()-10);
 	}
 }
@@ -303,8 +337,8 @@ void testApp::keyPressed  (int key){
 	}
 	else if (key >= 48 && key <=57)
 	{
-		if (debugOutput) {printf("in set sample\n");}
 		m_currentSample = key - 48;
+		if (debugOutput) {printf("set sample: %i\n", m_currentSample);}
 	}
 	else if (key == 'd') 
 	{
@@ -405,6 +439,10 @@ void testApp::keyPressed  (int key){
 		loadState(m_currentState);
 		if (debugOutput) {printf("current state : %i keydown\n", m_currentState);}
 	}
+	else if (key == 'u') 
+	{
+		usageMode = !usageMode;
+	}
 	
 }
 
@@ -445,7 +483,7 @@ void testApp::mousePressed(int x, int y, int button)
 		//ofRect(10, ofGetHeight()-100, 20, 20);
 		int h = ofGetHeight();
 		if (x >= 10 && x <= 30 && y >= (h-130) && y <= (h-110) ) {
-			if (debugOutput) {printf("pushed save square!\n");}
+			if (debugOutput) {printf("saved current state!\n");}
 			saveCurrentState();
 			//clearAll();
 		}
