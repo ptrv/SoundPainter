@@ -105,7 +105,6 @@ void testApp::setup(){
 	std::stringstream numstates;
 	numstates << tags;
 	m_stateLoadMessage = numstates.str();
-	m_msgReceiveTime = 0;
 
 	m_currentState = 0;
 
@@ -287,12 +286,14 @@ void testApp::draw()
 			strstrstr << m_currentState;
 			strstrstr << ", Saved states: ";
 			strstrstr << m_stateLoadMessage;
-			strstrstr << ", time: ";
-			strstrstr << m_msgReceiveTime;
 			strstrstr << "\n";
 			ofDrawBitmapString(strstrstr.str(), 10, ofGetHeight()-90);
-
-			ofDrawBitmapString(m_debugMessage, 10, ofGetHeight() - 50);
+			
+			std::stringstream strstrstrstr;
+			strstrstrstr << m_debugMessage;
+			if (m_debugMessage != "") {
+			}
+			ofDrawBitmapString(strstrstrstr.str(), 10, ofGetHeight() - 50);
 			
 
 		}
@@ -517,10 +518,11 @@ void testApp::mouseDragged(int x, int y, int button){
 //--------------------------------------------------------------
 void testApp::mousePressed(int x, int y, int button)
 {
+	int h = ofGetHeight();
 	if (debugMode)
 	{
 		//ofRect(10, ofGetHeight()-100, 20, 20);
-		int h = ofGetHeight();
+
 		if (x >= 10 && x <= 30 && y >= (h-130) && y <= (h-110) ) {
 			buttonPushed = true;
 			saveCurrentState();
@@ -530,15 +532,21 @@ void testApp::mousePressed(int x, int y, int button)
 	}
 	if ( m_run && m_currentSample < MAX_SAMPLES)
 	{
-		ofxVec3f tmpVec;
-		tmpVec.x = x;
-		tmpVec.y = y;
-		m_sampleVector[m_currentSample].push_back(tmpVec);
-		//m_sampleVectorBackup[m_currentSample].push_back(tmpVec);
+		if (x >= 10 && x <= 30 && y >= (h-130) && y <= (h-110) ) 
+		{
+		}
+		else
+		{
+			ofxVec3f tmpVec;
+			tmpVec.x = x;
+			tmpVec.y = y;
+			m_sampleVector[m_currentSample].push_back(tmpVec);
+			//m_sampleVectorBackup[m_currentSample].push_back(tmpVec);
 
-		++m_numSamples[m_currentSample];
-		m_playStatuses[m_currentSample].push_back(false);
-		//m_playStatusesBackup[m_currentSample].push_back(false);
+			++m_numSamples[m_currentSample];
+			m_playStatuses[m_currentSample].push_back(false);
+			//m_playStatusesBackup[m_currentSample].push_back(false);
+		}
 	}
 	else
 	{
@@ -598,7 +606,7 @@ void testApp::setOscDebugMessage(ofxOscMessage message)
 	stream << " :\n";
 	stream << "[address]: " << message.getAddress() << ", ";
 	for (int i = 0; i < message.getNumArgs(); ++i) {
-		stream << "[" << (i+1) << "] :";
+		stream << "[" << (i+1) << "]: ";
 		if (message.getArgType(i) == OFXOSC_TYPE_INT32) {
 			stream << message.getArgAsInt32(i);
 		}
@@ -610,8 +618,9 @@ void testApp::setOscDebugMessage(ofxOscMessage message)
 		}
 		if (i != message.getNumArgs()-1) {stream << ", ";};
 	}
+	stream << ", time: ";
+	stream << ofGetElapsedTimef();
 	m_debugMessage = stream.str();
-	m_msgReceiveTime = ofGetElapsedTimef();
 }
 
 void testApp::loadState(int state)

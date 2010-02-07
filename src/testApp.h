@@ -116,8 +116,6 @@ public:
 	
 	std::string m_savedStatesFileName;
 	
-	float m_msgReceiveTime;
-	
 	bool buttonPushed;
 
 };
