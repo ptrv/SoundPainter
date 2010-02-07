@@ -1,1 +1,4 @@
 pd/*
+bin/*
+obj/*
+*.depend
