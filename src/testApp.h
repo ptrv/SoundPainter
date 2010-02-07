@@ -111,6 +111,8 @@ public:
 	ofTrueTypeFont	m_fontText;
 	
 	std::string m_versionString;
+	
+	std::string m_savedStatesFileName;
 
 };
 

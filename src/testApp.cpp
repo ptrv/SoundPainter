@@ -57,6 +57,7 @@ void testApp::setup(){
 	else 
 		debugOutput = false;
 
+	m_savedStatesFileName = XML.getValue("settings:states:file", "savedStatesDefault.xml");
 	
 	m_currentSample = 0;
 
@@ -70,15 +71,15 @@ void testApp::setup(){
 	}
 	
 	
-	message = "loading savedStates.xml";
+	message = "loading "+m_savedStatesFileName;
     std::cout << message << std::endl;
 	//we load our settings file
 	//if it doesn't exist we can still make one
 	//by hitting the 's' key
-	if( XMLstates.loadFile("savedStates.xml") ){
-		message = "savedStates.xml loaded!";
+	if( XMLstates.loadFile(m_savedStatesFileName) ){
+		message = m_savedStatesFileName+" loaded!";
 	}else{
-		message = "unable to load savedStates.xml check data/ folder";
+		message = "unable to load "+m_savedStatesFileName+" check data/ folder";
 	}
 	std::cout << message << std::endl;
 	
@@ -487,26 +488,22 @@ void testApp::mousePressed(int x, int y, int button)
 			saveCurrentState();
 			//clearAll();
 		}
-	}
-	else 
+	}	
+	if ( m_run && m_currentSample < MAX_SAMPLES)
 	{
-		if ( m_run && m_currentSample < MAX_SAMPLES)
-		{
-			ofxVec3f tmpVec;
-			tmpVec.x = x;
-			tmpVec.y = y;
-			m_sampleVector[m_currentSample].push_back(tmpVec);
-			//m_sampleVectorBackup[m_currentSample].push_back(tmpVec);
-			
-			++m_numSamples[m_currentSample];
-			m_playStatuses[m_currentSample].push_back(false);
-			//m_playStatusesBackup[m_currentSample].push_back(false);			
-		}
-		else
-		{
-			nPts = 0;
-			//nPtsBackup = nPts;
-		}
+		ofxVec3f tmpVec;
+		tmpVec.x = x;
+		tmpVec.y = y;
+		m_sampleVector[m_currentSample].push_back(tmpVec);
+		//m_sampleVectorBackup[m_currentSample].push_back(tmpVec);
+		
+		++m_numSamples[m_currentSample];
+		m_playStatuses[m_currentSample].push_back(false);
+		//m_playStatusesBackup[m_currentSample].push_back(false);			
+	}
+	else
+	{
+		nPts = 0;
 	}
 }
 
@@ -577,125 +574,92 @@ void testApp::setOscDebugMessage(ofxOscMessage message)
 
 void testApp::loadState(int state)
 {
-//	//-----------
-//	//the string is printed at the top of the app
-//	//to give the user some feedback
-//	message = "loading mySettings.xml";
-//	
-//	//we load our settings file
-//	//if it doesn't exist we can still make one
-//	//by hitting the 's' key
-//	if( XMLstates.loadFile("savedStates.xml") ){
-//		message = "savedStates.xml loaded!";
-//	}else{
-//		message = "unable to load savedStates.xml check data/ folder";
-//	}
 	if (state == 0)
 	{
 		nPts = nPtsBackup;
 		for (int i = 0; i < nPts; ++i) {
-			
 			pts[i] = ptsBackup[i];
-			//			m_sampleVectorBackup[i].clear();
-			//			m_playStatuses[i] = m_playStatusesBackup[i];
-			//			m_playStatusesBackup[i].clear();
 		}
 		for (int i = 0; i < MAX_SAMPLES; ++i) {
 			m_sampleVector[i].clear();
-			//m_numSamples[i].clear();
 			m_playStatuses[i].clear();
 			m_sampleVector[i] = m_sampleVectorBackup[i];
 			m_numSamples[i] = m_numSamplesBackup[i];
 			m_playStatuses[i] = m_playStatusesBackup[i];
 		}
-		
 	}
 	else 
 	{
-		
-	
-
-	int numStateTags = XMLstates.getNumTags("STATE:NUMBER");
-	
-	if(numStateTags > 0)
-	{
-		//XML.pushTag("STATE", numStateTags-1);
-		XMLstates.pushTag("STATE", state-1);
-		
-		int stateNum = XMLstates.getValue("NUMBER", 0);
-		if (debugOutput) {printf("NUMBER: %i\n", stateNum);}
-		//XMLstates.pushTag(, )
-		//int numPtTags = XMLstates.getNumTags("LINE:PT");
-		XMLstates.pushTag("LINE", 0);
-		nPts = XMLstates.getValue("PTNUM", 0);
-		if (debugOutput) {printf("nPts: %i\n", nPts);}
-		int numPtTags = XMLstates.getNumTags("PT");
-		if (debugOutput) {printf("num PT: %i\n", numPtTags);}
-		for (int i = 0; i < MAX_N_PTS; ++i) {
-			pts[i].x = 0;
-			pts[i].y = 0;
-		}
-		for (int i = 0; i < numPtTags; ++i) {
-			pts[i].x = XMLstates.getValue("PT:X", 0, i);
-			pts[i].y = XMLstates.getValue("PT:Y", 0, i);
-			if (debugOutput) {printf("ptsX: %f, ptsY: %f\n", pts[i].x, pts[i].y);}
-		}
-		for (int i = 0; i < MAX_SAMPLES; ++i) {
-			//m_sampleVectorBackup[i] = m_sampleVector[i];
-			m_sampleVector[i].clear();
-			//m_playStatusesBackup[i] = m_playStatuses[i];
-			m_playStatuses[i].clear();
-			m_numSamples[i] = 0;
-		}
-		XMLstates.popTag();
-		int numSampleTags = XMLstates.getNumTags("SAMPLE");
-		if (debugOutput) {printf("num SAMPLE: %i\n", numSampleTags);}
-		for (int i = 0; i < numSampleTags; ++i) {
-			int snum = XMLstates.getValue("SAMPLE:NUMBER",0,i);
-			int amount = XMLstates.getValue("SAMPLE:AMOUNT", 0, i);
-			if (debugOutput) {printf("SAMPLE number: %i\n", snum);}
-			if (debugOutput) {printf("AMOUNT: %i\n", amount);}
-			m_sampleVector[snum].clear();
-			//m_playStatuses[snum].clear();
-			XMLstates.pushTag("SAMPLE", i);
-			for (int j = 0; j < amount; ++j) {
-				//XMLstates.pushTag("SAMPLE", j);
-				ofxVec3f tmpVec;
-				int x = XMLstates.getValue("DOT:X", 0, j);
-				int y = XMLstates.getValue("DOT:Y", 0, j);
-				if (debugOutput) {printf("sample vector x: %i, y: %i\n", x, y);}
-				tmpVec.set(x, y,0);
-				m_sampleVector[snum].push_back(tmpVec);
-				m_playStatuses[snum].push_back(false);
-				//m_playStatuses[snum].push_back(true);
-				
+		int numStateTags = XMLstates.getNumTags("STATE:NUMBER");
+		if(numStateTags > 0)
+		{
+			//XML.pushTag("STATE", numStateTags-1);
+			XMLstates.pushTag("STATE", state-1);
+			
+			int stateNum = XMLstates.getValue("NUMBER", 0);
+			if (debugOutput) {printf("NUMBER: %i\n", stateNum);}
+			//XMLstates.pushTag(, )
+			//int numPtTags = XMLstates.getNumTags("LINE:PT");
+			XMLstates.pushTag("LINE", 0);
+			nPts = XMLstates.getValue("PTNUM", 0);
+			if (debugOutput) {printf("nPts: %i\n", nPts);}
+			int numPtTags = XMLstates.getNumTags("PT");
+			if (debugOutput) {printf("num PT: %i\n", numPtTags);}
+			for (int i = 0; i < MAX_N_PTS; ++i) {
+				pts[i].x = 0;
+				pts[i].y = 0;
 			}
-			m_numSamples[snum] = amount;
+			for (int i = 0; i < numPtTags; ++i) {
+				pts[i].x = XMLstates.getValue("PT:X", 0, i);
+				pts[i].y = XMLstates.getValue("PT:Y", 0, i);
+				if (debugOutput) {printf("ptsX: %f, ptsY: %f\n", pts[i].x, pts[i].y);}
+			}
+			for (int i = 0; i < MAX_SAMPLES; ++i) {
+				//m_sampleVectorBackup[i] = m_sampleVector[i];
+				m_sampleVector[i].clear();
+				//m_playStatusesBackup[i] = m_playStatuses[i];
+				m_playStatuses[i].clear();
+				m_numSamples[i] = 0;
+			}
 			XMLstates.popTag();
-//			m_sampleVector[
+			int numSampleTags = XMLstates.getNumTags("SAMPLE");
+			if (debugOutput) {printf("num SAMPLE: %i\n", numSampleTags);}
+			for (int i = 0; i < numSampleTags; ++i) {
+				int snum = XMLstates.getValue("SAMPLE:NUMBER",0,i);
+				int amount = XMLstates.getValue("SAMPLE:AMOUNT", 0, i);
+				if (debugOutput) {printf("SAMPLE number: %i\n", snum);}
+				if (debugOutput) {printf("AMOUNT: %i\n", amount);}
+				m_sampleVector[snum].clear();
+				//m_playStatuses[snum].clear();
+				XMLstates.pushTag("SAMPLE", i);
+				for (int j = 0; j < amount; ++j) {
+					//XMLstates.pushTag("SAMPLE", j);
+					ofxVec3f tmpVec;
+					int x = XMLstates.getValue("DOT:X", 0, j);
+					int y = XMLstates.getValue("DOT:Y", 0, j);
+					if (debugOutput) {printf("sample vector x: %i, y: %i\n", x, y);}
+					tmpVec.set(x, y,0);
+					m_sampleVector[snum].push_back(tmpVec);
+					m_playStatuses[snum].push_back(false);
+					//m_playStatuses[snum].push_back(true);
+					
+				}
+				m_numSamples[snum] = amount;
+				XMLstates.popTag();
+			}
+			XMLstates.popTag();		
 		}
-		XMLstates.popTag();
-//		m_sampleVectorBackup = m_sampleVector;
-//		m_sampleVector.clear();
-//		m_playStatusesBackup = m_playStatuses;
-		
-//		for (int i = 0; i < numSampleTags; ++i) {
-//			
-//		}
-		
-	}
 	}
 	
 }
 
 void testApp::saveCurrentState()
 {
-	if (m_currentState == 0) 
-	{
+//	if (m_currentState == 0) 
+//	{
 		lastTagNumber = XMLstates.addTag("STATE");
 		if( XMLstates.pushTag("STATE", lastTagNumber) )
 		{
-			
 			XMLstates.addTag("NUMBER");
 			XMLstates.setValue("NUMBER", lastTagNumber+1, 0);
 			//now we will add a pt tag - with two
@@ -704,17 +668,13 @@ void testApp::saveCurrentState()
 			XMLstates.pushTag("LINE", 0);
 			XMLstates.addTag("PTNUM");
 			XMLstates.setValue("PTNUM", nPts);
-			
 			for (int i = 0; i < nPts; ++i) 
 			{
 				int tagNum = XML.addTag("PT");
 				XMLstates.setValue("PT:X", pts[i].x, i);
 				XMLstates.setValue("PT:Y", pts[i].y, i);					
-				
 			}			
-			
 			XMLstates.popTag();
-			
 			for (int i = 0; i<MAX_SAMPLES; ++i) 
 			{
 				int tagNum = 0;
@@ -737,15 +697,13 @@ void testApp::saveCurrentState()
 					XMLstates.popTag();
 				}
 			}
-			
 			XMLstates.popTag();
-			
 		}
-		XMLstates.saveFile("savedStates.xml");
+		XMLstates.saveFile(m_savedStatesFileName);
 		std::stringstream strstr;
 		strstr << XMLstates.getNumTags("STATE");
 		m_stateLoadMessage = strstr.str();
-	}
+//	}
 }
 void testApp::clearAll()
 {
