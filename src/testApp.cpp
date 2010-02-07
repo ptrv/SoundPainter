@@ -23,9 +23,9 @@ void testApp::setup(){
 	}
 	std::cout << message << std::endl;
 	
-		
     oschost = XML.getValue("settings:osc:host", "localhost");
     oscport = XML.getValue("settings:osc:port", 57120);
+	
 	nPts = 0;
 	nPtsBackup = 0;
 	m_runInterval = 0;
@@ -46,6 +46,12 @@ void testApp::setup(){
 		showOscDebugPosition = true;
 	else 
 		showOscDebugPosition = false;
+
+	int dbgOut = XML.getValue("settings:debug:sysout", 1); 
+	if (dbgOut > 0)
+		debugOutput = true;
+	else 
+		debugOutput = false;
 
 	
 	m_currentSample = 0;
@@ -76,12 +82,13 @@ void testApp::setup(){
 	lastTagNumber = 0;
 	
 	int tags = XMLstates.getNumTags("STATE");
-	printf("states : %i\n", tags);
+	if (debugOutput) {printf("states : %i\n", tags);}
 	std::stringstream numstates;
 	numstates << tags;
 	m_stateLoadMessage = numstates.str();
 	
 	m_currentState = 0;
+	
 }
 
 //--------------------------------------------------------------
@@ -190,10 +197,12 @@ void testApp::draw()
 		stream << "Remove last dot from current sample:- z\n";
 		stream << "Put last removed dot back:----------- shift + z\n";
 		stream << "Remove all dots:--------------------- c\n";
+		stream << "Remove all dots and line:------------ shift + c\n";
 		stream << "Fullscreen mode:--------------------- shift + F\n";
 		stream << "Show sample colors:------------------ f\n";
 		stream << "Change sample colors:---------------- g\n";
 		stream << "Debug mode:-------------------------- d\n";
+		stream << "Switch between saved states:--------- + / -\n";
 		stream << "This menu:--------------------------- h\n";
 		ofDrawBitmapString(stream.str(), 10, 130);
 	}
@@ -223,7 +232,7 @@ void testApp::draw()
 //--------------------------------------------------------------
 void testApp::keyPressed  (int key){
 
-	//printf("Pressed key number: %i\n", key);
+	//if (debugOutput) {printf("Pressed key number: %i\n", key);}
 	if ( key == 's' || key == 'S' )
 	{
 		if ( m_run )
@@ -267,13 +276,17 @@ void testApp::keyPressed  (int key){
 			++m_numSamples[m_currentSample];
 		}
 	}
-	else if ( key == 'c' || key == 'C' )
+	else if ( key == 'c' )
 	{
 		// clear all samples
 		for (int i = 0; i < MAX_SAMPLES; ++i) {
 			m_numSamples[i] = 0;
 			m_sampleVector[i].clear();
 		}
+	}
+	else if ( key == 'C' )
+	{
+		clearAll();
 	}
 	else if ( key == 'F' )
 	{
@@ -290,13 +303,13 @@ void testApp::keyPressed  (int key){
 	}
 	else if (key >= 48 && key <=57)
 	{
-		printf("in set sample\n");
+		if (debugOutput) {printf("in set sample\n");}
 		m_currentSample = key - 48;
 	}
 	else if (key == 'd') 
 	{
 		if (!helpMode) {
-			printf("debug mode\n");
+			if (debugOutput) {printf("debug mode\n");}
 			debugMode = !debugMode;
 		}
 	}
@@ -316,7 +329,7 @@ void testApp::keyPressed  (int key){
 	else if (key == 'h') 
 	{
 		if (!debugMode) {
-			printf("help mode\n");
+			if (debugOutput) {printf("help mode\n");}
 			helpMode = !helpMode;
 		}
 	}
@@ -326,6 +339,29 @@ void testApp::keyPressed  (int key){
 	}
 	else if (key == OF_KEY_UP) 
 	{
+		if (m_currentState == 0) {
+			nPtsBackup = nPts;
+			for (int i = 0; i < MAX_N_PTS; ++i) {
+				ptsBackup[i] = 0;
+			}
+			
+			for (int i = 0; i < nPts; ++i) {
+//				if (pts[i] != 0) {
+//					ptsBackup[i] = pts[i];
+//				}
+//				else 
+//				{
+//					break;
+//				}
+				ptsBackup[i] = pts[i];
+				//m_sampleVectorBackup[i] = m_sampleVector[i];
+			}
+			for (int i = 0; i < MAX_SAMPLES; ++i) {
+				m_sampleVectorBackup[i] = m_sampleVector[i];
+				m_numSamplesBackup[i] = m_numSamples[i];
+				m_playStatusesBackup[i] = m_playStatuses[i];
+			}
+		}
 		++m_currentState;
 		
 		if (m_currentState > XMLstates.getNumTags("STATE"))
@@ -333,18 +369,41 @@ void testApp::keyPressed  (int key){
 			m_currentState = 0;
 		}
 		loadState(m_currentState);
-		printf("current state : %i keyup\n", m_currentState);
+		if (debugOutput) {printf("current state : %i keyup\n", m_currentState);}
 		
 	}
 	else if (key == OF_KEY_DOWN)
 	{
+		if (m_currentState == 0) {
+			nPtsBackup = nPts;
+			for (int i = 0; i < MAX_N_PTS; ++i) {
+				ptsBackup[i] = 0;
+			}
+			
+			for (int i = 0; i < nPts; ++i) {
+				//				if (pts[i] != 0) {
+				//					ptsBackup[i] = pts[i];
+				//				}
+				//				else 
+				//				{
+				//					break;
+				//				}
+				ptsBackup[i] = pts[i];
+				//m_sampleVectorBackup[i] = m_sampleVector[i];
+			}
+			for (int i = 0; i < MAX_SAMPLES; ++i) {
+				m_sampleVectorBackup[i] = m_sampleVector[i];
+				m_numSamplesBackup[i] = m_numSamples[i];
+				m_playStatusesBackup[i] = m_playStatuses[i];
+			}
+		}
 		--m_currentState;
 		if (m_currentState < 0)
 		{
 			m_currentState =  XMLstates.getNumTags("STATE");
 		}
 		loadState(m_currentState);
-		printf("current state : %i keydown\n", m_currentState);
+		if (debugOutput) {printf("current state : %i keydown\n", m_currentState);}
 	}
 	
 }
@@ -386,8 +445,9 @@ void testApp::mousePressed(int x, int y, int button)
 		//ofRect(10, ofGetHeight()-100, 20, 20);
 		int h = ofGetHeight();
 		if (x >= 10 && x <= 30 && y >= (h-130) && y <= (h-110) ) {
-			printf("pushed save square!\n");
+			if (debugOutput) {printf("pushed save square!\n");}
 			saveCurrentState();
+			//clearAll();
 		}
 	}
 	else 
@@ -398,7 +458,7 @@ void testApp::mousePressed(int x, int y, int button)
 			tmpVec.x = x;
 			tmpVec.y = y;
 			m_sampleVector[m_currentSample].push_back(tmpVec);
-			m_sampleVectorBackup[m_currentSample].push_back(tmpVec);
+			//m_sampleVectorBackup[m_currentSample].push_back(tmpVec);
 			
 			++m_numSamples[m_currentSample];
 			m_playStatuses[m_currentSample].push_back(false);
@@ -407,7 +467,7 @@ void testApp::mousePressed(int x, int y, int button)
 		else
 		{
 			nPts = 0;
-			nPtsBackup = nPts;
+			//nPtsBackup = nPts;
 		}
 	}
 }
@@ -492,21 +552,47 @@ void testApp::loadState(int state)
 //	}else{
 //		message = "unable to load savedStates.xml check data/ folder";
 //	}
+	if (state == 0)
+	{
+		nPts = nPtsBackup;
+		for (int i = 0; i < nPts; ++i) {
+			
+			pts[i] = ptsBackup[i];
+			//			m_sampleVectorBackup[i].clear();
+			//			m_playStatuses[i] = m_playStatusesBackup[i];
+			//			m_playStatusesBackup[i].clear();
+		}
+		for (int i = 0; i < MAX_SAMPLES; ++i) {
+			m_sampleVector[i].clear();
+			//m_numSamples[i].clear();
+			m_playStatuses[i].clear();
+			m_sampleVector[i] = m_sampleVectorBackup[i];
+			m_numSamples[i] = m_numSamplesBackup[i];
+			m_playStatuses[i] = m_playStatusesBackup[i];
+		}
+		
+	}
+	else 
+	{
+		
 	
+
 	int numStateTags = XMLstates.getNumTags("STATE:NUMBER");
 	
-	if(numStateTags > 0 && numStateTags > state)
+	if(numStateTags > 0)
 	{
 		//XML.pushTag("STATE", numStateTags-1);
-		XMLstates.pushTag("STATE", state);
+		XMLstates.pushTag("STATE", state-1);
 		
 		int stateNum = XMLstates.getValue("NUMBER", 0);
-		
+		if (debugOutput) {printf("NUMBER: %i\n", stateNum);}
 		//XMLstates.pushTag(, )
 		//int numPtTags = XMLstates.getNumTags("LINE:PT");
 		XMLstates.pushTag("LINE", 0);
 		nPts = XMLstates.getValue("PTNUM", 0);
+		if (debugOutput) {printf("nPts: %i\n", nPts);}
 		int numPtTags = XMLstates.getNumTags("PT");
+		if (debugOutput) {printf("num PT: %i\n", numPtTags);}
 		for (int i = 0; i < MAX_N_PTS; ++i) {
 			pts[i].x = 0;
 			pts[i].y = 0;
@@ -514,31 +600,39 @@ void testApp::loadState(int state)
 		for (int i = 0; i < numPtTags; ++i) {
 			pts[i].x = XMLstates.getValue("PT:X", 0, i);
 			pts[i].y = XMLstates.getValue("PT:Y", 0, i);
+			if (debugOutput) {printf("ptsX: %f, ptsY: %f\n", pts[i].x, pts[i].y);}
 		}
 		for (int i = 0; i < MAX_SAMPLES; ++i) {
 			//m_sampleVectorBackup[i] = m_sampleVector[i];
 			m_sampleVector[i].clear();
 			//m_playStatusesBackup[i] = m_playStatuses[i];
-			//m_playStatuses[i].clear();
+			m_playStatuses[i].clear();
+			m_numSamples[i] = 0;
 		}
 		XMLstates.popTag();
 		int numSampleTags = XMLstates.getNumTags("SAMPLE");
-		for (int i = 0; i < numStateTags; ++i) {
+		if (debugOutput) {printf("num SAMPLE: %i\n", numSampleTags);}
+		for (int i = 0; i < numSampleTags; ++i) {
 			int snum = XMLstates.getValue("SAMPLE:NUMBER",0,i);
 			int amount = XMLstates.getValue("SAMPLE:AMOUNT", 0, i);
+			if (debugOutput) {printf("SAMPLE number: %i\n", snum);}
+			if (debugOutput) {printf("AMOUNT: %i\n", amount);}
 			m_sampleVector[snum].clear();
 			//m_playStatuses[snum].clear();
-			XMLstates.pushTag("SAMPLE");
+			XMLstates.pushTag("SAMPLE", i);
 			for (int j = 0; j < amount; ++j) {
 				//XMLstates.pushTag("SAMPLE", j);
 				ofxVec3f tmpVec;
-				float x = XMLstates.getValue("DOT:X", 0, j);
-				float y = XMLstates.getValue("DOT:Y", 0, j);
-				tmpVec.set(x, y, 0);
+				int x = XMLstates.getValue("DOT:X", 0, j);
+				int y = XMLstates.getValue("DOT:Y", 0, j);
+				if (debugOutput) {printf("sample vector x: %i, y: %i\n", x, y);}
+				tmpVec.set(x, y,0);
 				m_sampleVector[snum].push_back(tmpVec);
+				m_playStatuses[snum].push_back(false);
 				//m_playStatuses[snum].push_back(true);
 				
 			}
+			m_numSamples[snum] = amount;
 			XMLstates.popTag();
 //			m_sampleVector[
 		}
@@ -552,16 +646,6 @@ void testApp::loadState(int state)
 //		}
 		
 	}
-	if (state == 0)
-	{
-		for (int i = 0; i < MAX_SAMPLES; ++i) {
-			nPts = nPtsBackup;
-			m_sampleVector[i] = m_sampleVectorBackup[i];
-			m_sampleVectorBackup[i].clear();
-//			m_playStatuses[i] = m_playStatusesBackup[i];
-//			m_playStatusesBackup[i].clear();
-		}
-		
 	}
 	
 }
@@ -583,17 +667,12 @@ void testApp::saveCurrentState()
 			XMLstates.addTag("PTNUM");
 			XMLstates.setValue("PTNUM", nPts);
 			
-			for (int i = 0; i < MAX_N_PTS; ++i) 
+			for (int i = 0; i < nPts; ++i) 
 			{
-				if (pts[i].x != 0 && pts[i] != 0) {
-					int tagNum = XML.addTag("PT");
-					XMLstates.setValue("PT:X", pts[i].x, tagNum);
-					XMLstates.setValue("PT:Y", pts[i].y, tagNum);					
-				}
-				else 
-				{
-					break;
-				}
+				int tagNum = XML.addTag("PT");
+				XMLstates.setValue("PT:X", pts[i].x, i);
+				XMLstates.setValue("PT:Y", pts[i].y, i);					
+				
 			}			
 			
 			XMLstates.popTag();
@@ -614,8 +693,8 @@ void testApp::saveCurrentState()
 						int dotTagNum = XMLstates.addTag("DOT");
 						float x = m_sampleVector[i][j].x;
 						float y = m_sampleVector[i][j].y;
-						XMLstates.setValue("DOT:X", x, dotTagNum);
-						XMLstates.setValue("DOT:y", y, dotTagNum);
+						XMLstates.setValue("DOT:X", x, j);
+						XMLstates.setValue("DOT:Y", y, j);
 					}
 					XMLstates.popTag();
 				}
@@ -626,7 +705,26 @@ void testApp::saveCurrentState()
 		}
 		XMLstates.saveFile("savedStates.xml");
 		std::stringstream strstr;
-		strstr << lastTagNumber;
+		strstr << XMLstates.getNumTags("STATE");
 		m_stateLoadMessage = strstr.str();
+	}
+}
+void testApp::clearAll()
+{
+	nPts = 0;
+	isPlaying = true;
+	m_run = false;
+	m_currentState=0;
+	std::stringstream strstr;
+	strstr << XMLstates.getNumTags("STATE");
+	m_stateLoadMessage = strstr.str();
+	
+	for (int i = 0; i < MAX_N_PTS; ++i) {
+		pts[i] = 0;
+	}
+	for (int i = 0; i < MAX_SAMPLES; ++i) {
+		m_numSamples[i] = 0;
+		m_sampleVector[i].clear();
+		m_playStatuses[i].clear();
 	}
 }

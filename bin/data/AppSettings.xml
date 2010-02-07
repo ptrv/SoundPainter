@@ -7,5 +7,6 @@
 	</osc>
 	<debug>
 		<position>0</position>
+		<sysout>1</sysout>
 	</debug>
 </settings>

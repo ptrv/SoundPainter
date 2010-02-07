@@ -39,6 +39,8 @@ public:
 	void setOscDebugMessage(ofxOscMessage message);
 	void saveCurrentState();
 	void loadState(int state);
+	
+	void clearAll();
 
 //	void audioReceived 	(float * input, int bufferSize, int nChannels);
 //
@@ -69,6 +71,7 @@ public:
 	int m_prevTime;
 	int m_numSampls;
 	int m_numSamples[MAX_SAMPLES];
+	int m_numSamplesBackup[MAX_SAMPLES];
 	
 	std::vector<ofxVec3f> m_samplVec;
 	std::vector<ofxVec3f> m_sampleVector[MAX_SAMPLES];
@@ -89,17 +92,15 @@ public:
 	std::vector<bool> playStatus;
 	std::vector<bool> m_playStatuses[MAX_SAMPLES];
 	std::vector<bool> m_playStatusesBackup[MAX_SAMPLES];
-
 	int m_currentSample;
 	ofColor m_sampleColors[MAX_SAMPLES];
-	
 	std::string m_debugMessage;
 	bool showOscDebugPosition;
-	
 	int m_currentState;
 	std::string m_stateLoadMessage;
-	
 	int lastTagNumber;
+	
+	bool debugOutput;
 
 };
 
