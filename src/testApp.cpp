@@ -25,10 +25,10 @@ void testApp::setup(){
 		message = "unable to load AppSettings.xml check data/ folder";
 	}
 	std::cout << message << std::endl;
-	
+
     oschost = XML.getValue("settings:osc:host", "localhost");
     oscport = XML.getValue("settings:osc:port", 57120);
-	
+
 	nPts = 0;
 	nPtsBackup = 0;
 	m_runInterval = 0;
@@ -45,34 +45,34 @@ void testApp::setup(){
 		debugMode = true;
 	else
 		debugMode = false;
-	
+
 	if (XML.getValue("settings:startup:colormode", 0))
 		showColors = true;
 	else
 		showColors = false;
-	
+
 	if (XML.getValue("settings:startup:helpmode", 0))
 		helpMode = true;
 	else
 		helpMode = false;
-	
+
 	if(XML.getValue("settings:startup:aboutscreen", 0))
 		usageMode = true;
 	else
 		usageMode = false;
-	
-	if (XML.getValue("settings:debug:position", 1)) 
+
+	if (XML.getValue("settings:debug:position", 1))
 		showOscDebugPosition = true;
-	else 
+	else
 		showOscDebugPosition = false;
 
 	if (XML.getValue("settings:debug:sysout", 1))
 		debugOutput = true;
-	else 
+	else
 		debugOutput = false;
 
 	m_savedStatesFileName = XML.getValue("settings:states:file", "savedStatesDefault.xml");
-	
+
 	m_currentSample = 0;
 
 	for (int i = 0; i < MAX_SAMPLES; ++i) {
@@ -83,8 +83,8 @@ void testApp::setup(){
 		m_numSamples[i] = 0;
 //		m_sampleVector[i].push_back(std::vector<ofxVec3f> samples);
 	}
-	
-	
+
+
 	message = "loading "+m_savedStatesFileName;
     std::cout << message << std::endl;
 	//we load our settings file
@@ -96,18 +96,18 @@ void testApp::setup(){
 		message = "unable to load "+m_savedStatesFileName+" check data/ folder";
 	}
 	std::cout << message << std::endl;
-	
-	
+
+
 	lastTagNumber = 0;
-	
+
 	int tags = XMLstates.getNumTags("STATE");
 	if (debugOutput) {printf("states : %i\n", tags);}
 	std::stringstream numstates;
 	numstates << tags;
 	m_stateLoadMessage = numstates.str();
-	
+
 	m_currentState = 0;
-	
+
 	m_fontTitle.loadFont("Sudbury_Basin_3D.ttf", 50);
 	m_fontOfVersion.loadFont("mono.ttf", 7);
 	m_fontText.loadFont("mono.ttf", 10);
@@ -133,7 +133,7 @@ void testApp::update(){
 		ofxOscMessage m;
 		//m.setAddress( "/mouse/position" );
 		m.setAddress( "/fx" );
-		
+
 		m.addStringArg("positionx");
 		m.addIntArg( pts[m_BallPos].x );
 		m.addStringArg("positionx");
@@ -141,7 +141,7 @@ void testApp::update(){
 		sender.sendMessage( m );
 		if (showOscDebugPosition) {
 			setOscDebugMessage(m);
-		} 
+		}
 
 
 		if ( m_BallPos >= nPts)
@@ -155,9 +155,9 @@ void testApp::update(){
 	{
 		m_BallPos = 0;
 	}
-	if (debugMode) 
+	if (debugMode)
 	{
-		
+
 	}
 	ofSleepMillis(40);
 
@@ -174,9 +174,9 @@ void testApp::draw()
 		int rmargin = 20;
 		ofSetColor(0x000000);
 		m_fontTitle.drawString("SoundPainter", rmargin, 100);
-		
+
 		m_fontOfVersion.drawString("version "+m_versionString+", openFrameworks 0061, "+APP_AUTHOR, rmargin, 130);
-		
+
 		m_fontText.drawString("Paint program where you draw your musical timeline, and", rmargin, 170);
 		m_fontText.drawString("put sampledots on it. Each color dot represents a sample.", rmargin, 190);
 		m_fontText.drawString("You can put many sampledots with the same color on the", rmargin, 210);
@@ -184,11 +184,11 @@ void testApp::draw()
 		m_fontText.drawString("OSC messages are sent to a listening Application", rmargin, 250);
 		m_fontText.drawString("(e.g. Pure data, SuperCollider, Max/MSP), which plays the", rmargin, 270);
 		m_fontText.drawString("sound files.", rmargin, 290);
-		
+
 		m_fontText.drawString("The OSC messages are:", rmargin, 350);
 		m_fontText.drawString("- Sample trigger:   /play <sample number>", rmargin, 370);
 		m_fontText.drawString("- Dot position:     /fx positionx <actual x> positiony <actual y>", rmargin, 390);
-		
+
 		//m_fontText.drawString("", rmargin, 410);
 	}
 	else
@@ -200,7 +200,7 @@ void testApp::draw()
 			ofVertex(pts[i].x, pts[i].y);
 		}
 		ofEndShape();
-		
+
 		if (m_run) {
 			ofBeginShape();
 			ofSetColor(0, 0, 0);
@@ -208,12 +208,12 @@ void testApp::draw()
 			ofEllipse(pts[m_BallPos].x, pts[m_BallPos].y, 15, 15);
 			ofEndShape();
 		}
-		
+
 		ofEnableAlphaBlending();
 		ofBeginShape();
 		for ( int i = 0; i < MAX_SAMPLES; ++i )
 		{
-			for (int j = 0; j < m_numSamples[i]; ++j) 
+			for (int j = 0; j < m_numSamples[i]; ++j)
 			{
 				ofSetColor(m_sampleColors[i].r, m_sampleColors[i].g, m_sampleColors[i].b, m_sampleColors[i].a);
 				ofFill();
@@ -222,7 +222,7 @@ void testApp::draw()
 		}
 		ofEndShape();
 		// -----------------------------------------------------------------------------
-		
+
 		ofSetColor(0, 0, 0);
 		std::string text = "Current sample: ";
 		std::stringstream strstr;
@@ -240,7 +240,7 @@ void testApp::draw()
 				strstr << i;
 				ofDrawBitmapString(strstr.str(), 40*i + 20, 90);
 			}
-			
+
 		}
 		if (helpMode) {
 			ofSetColor(0, 0, 0);
@@ -281,13 +281,13 @@ void testApp::draw()
 			strstrstr << m_stateLoadMessage;
 			strstrstr << "\n";
 			ofDrawBitmapString(strstrstr.str(), 10, ofGetHeight()-90);
-			
+
 			ofDrawBitmapString(m_debugMessage, 10, ofGetHeight() - 50);
-			
+
 		}
 		if (debugMode || helpMode) {
 			ofSetColor(0, 0, 0);
-			ofDrawBitmapString("Peter Vasil, 2010", ofGetWidth()-180, ofGetHeight()-10);
+			ofDrawBitmapString("Peter Vasil, 2010", ofGetWidth()-150, ofGetHeight()-10);
 		}
 	}
 }
@@ -316,12 +316,12 @@ void testApp::keyPressed  (int key){
 			setOscDebugMessage(m);
 		}
 	}
-	else if (key == 'r' || key == 'R') 
+	else if (key == 'r' || key == 'R')
 	{
 		m_numSamples[m_currentSample] = 0;
 		m_sampleVector[m_currentSample].clear();
 	}
-	else if (key == 'z') 
+	else if (key == 'z')
 	{
 		if (m_numSamples[m_currentSample] > 0)
 		{
@@ -330,7 +330,7 @@ void testApp::keyPressed  (int key){
 			m_sampleVector[m_currentSample].pop_back();
 		}
 	}
-	else if (key == 'Z') 
+	else if (key == 'Z')
 	{
 		if (m_sampleVectorPopped[m_currentSample].size() > 0) {
 			m_sampleVector[m_currentSample].push_back(m_sampleVectorPopped[m_currentSample].back());
@@ -368,18 +368,18 @@ void testApp::keyPressed  (int key){
 		m_currentSample = key - 48;
 		if (debugOutput) {printf("set sample: %i\n", m_currentSample);}
 	}
-	else if (key == 'd') 
+	else if (key == 'd')
 	{
 //		if (!helpMode) {
 			if (debugOutput) {printf("debug mode\n");}
 			debugMode = !debugMode;
 //		}
 	}
-	else if (key == 'f') 
+	else if (key == 'f')
 	{
 		showColors = !showColors;
 	}
-	else if (key == 'g') 
+	else if (key == 'g')
 	{
 		for (int i = 0; i < MAX_SAMPLES; ++i) {
 			m_sampleColors[i].r = ofRandom(0, 255);
@@ -388,25 +388,25 @@ void testApp::keyPressed  (int key){
 			m_sampleColors[i].a = 127;
 		}
 	}
-	else if (key == 'h') 
+	else if (key == 'h')
 	{
 //		if (!debugMode) {
 			if (debugOutput) {printf("help mode\n");}
 			helpMode = !helpMode;
 //		}
 	}
-	else if (key == 'm') 
+	else if (key == 'm')
 	{
 		showOscDebugPosition = !showOscDebugPosition;
 	}
-	else if (key == OF_KEY_UP) 
+	else if (key == OF_KEY_UP)
 	{
 		if (m_currentState == 0) {
 			nPtsBackup = nPts;
 			for (int i = 0; i < MAX_N_PTS; ++i) {
 				ptsBackup[i] = 0;
 			}
-			
+
 			for (int i = 0; i < nPts; ++i) {
 				ptsBackup[i] = pts[i];
 			}
@@ -417,14 +417,14 @@ void testApp::keyPressed  (int key){
 			}
 		}
 		++m_currentState;
-		
+
 		if (m_currentState > XMLstates.getNumTags("STATE"))
 		{
 			m_currentState = 0;
 		}
 		loadState(m_currentState);
 		if (debugOutput) {printf("current state : %i keyup\n", m_currentState);}
-		
+
 	}
 	else if (key == OF_KEY_DOWN)
 	{
@@ -433,7 +433,7 @@ void testApp::keyPressed  (int key){
 			for (int i = 0; i < MAX_N_PTS; ++i) {
 				ptsBackup[i] = 0;
 			}
-			
+
 			for (int i = 0; i < nPts; ++i) {
 				ptsBackup[i] = pts[i];
 			}
@@ -451,11 +451,11 @@ void testApp::keyPressed  (int key){
 		loadState(m_currentState);
 		if (debugOutput) {printf("current state : %i keydown\n", m_currentState);}
 	}
-	else if (key == OF_KEY_RETURN) 
+	else if (key == OF_KEY_RETURN)
 	{
 		usageMode = !usageMode;
 	}
-	else if (key == 'w') 
+	else if (key == 'w')
 	{
 		if (debugMode) {
 			saveCurrentState();
@@ -464,7 +464,7 @@ void testApp::keyPressed  (int key){
 	}
 	else if (key == 'e')
 	{
-		if (debugMode) 
+		if (debugMode)
 		{
 			readStates();
 		}
@@ -503,7 +503,7 @@ void testApp::mouseDragged(int x, int y, int button){
 //--------------------------------------------------------------
 void testApp::mousePressed(int x, int y, int button)
 {
-	if (debugMode) 
+	if (debugMode)
 	{
 		//ofRect(10, ofGetHeight()-100, 20, 20);
 		int h = ofGetHeight();
@@ -512,7 +512,7 @@ void testApp::mousePressed(int x, int y, int button)
 			//clearAll();
 			if (debugOutput) {printf("saved current state!\n");}
 		}
-	}	
+	}
 	if ( m_run && m_currentSample < MAX_SAMPLES)
 	{
 		ofxVec3f tmpVec;
@@ -520,10 +520,10 @@ void testApp::mousePressed(int x, int y, int button)
 		tmpVec.y = y;
 		m_sampleVector[m_currentSample].push_back(tmpVec);
 		//m_sampleVectorBackup[m_currentSample].push_back(tmpVec);
-		
+
 		++m_numSamples[m_currentSample];
 		m_playStatuses[m_currentSample].push_back(false);
-		//m_playStatusesBackup[m_currentSample].push_back(false);			
+		//m_playStatusesBackup[m_currentSample].push_back(false);
 	}
 	else
 	{
@@ -540,7 +540,7 @@ void testApp::mouseReleased()
 
 void testApp::checkPlayPos(int x, int y)
 {
-	for (int j = 0; j<MAX_SAMPLES; ++j) 
+	for (int j = 0; j<MAX_SAMPLES; ++j)
 	{
 		if (m_numSamples[j] > 0) {
 			for ( unsigned int i = 0; i < m_sampleVector[j].size(); ++i )
@@ -574,14 +574,14 @@ void testApp::setOscDebugMessage(ofxOscMessage message)
 {
 	std::stringstream stream;
 	stream << "OSC messages";
-	if (!showOscDebugPosition) 
+	if (!showOscDebugPosition)
 	{
 		stream << " (Not showing position messages)";
 	}
 	stream << " :\n";
 	stream << "[address]: " << message.getAddress() << ", ";
 	for (int i = 0; i < message.getNumArgs(); ++i) {
-		stream << "[" << (i+1) << "] :";				
+		stream << "[" << (i+1) << "] :";
 		if (message.getArgType(i) == OFXOSC_TYPE_INT32) {
 			stream << message.getArgAsInt32(i);
 		}
@@ -612,14 +612,14 @@ void testApp::loadState(int state)
 			m_playStatuses[i] = m_playStatusesBackup[i];
 		}
 	}
-	else 
+	else
 	{
 		int numStateTags = XMLstates.getNumTags("STATE:NUMBER");
 		if(numStateTags > 0)
 		{
 			//XML.pushTag("STATE", numStateTags-1);
 			XMLstates.pushTag("STATE", state-1);
-			
+
 			int stateNum = XMLstates.getValue("NUMBER", 0);
 			if (debugOutput) {printf("NUMBER: %i\n", stateNum);}
 			//XMLstates.pushTag(, )
@@ -666,15 +666,15 @@ void testApp::loadState(int state)
 					m_sampleVector[snum].push_back(tmpVec);
 					m_playStatuses[snum].push_back(false);
 					//m_playStatuses[snum].push_back(true);
-					
+
 				}
 				m_numSamples[snum] = amount;
 				XMLstates.popTag();
 			}
-			XMLstates.popTag();		
+			XMLstates.popTag();
 		}
 	}
-	
+
 }
 
 void testApp::saveCurrentState()
@@ -690,17 +690,17 @@ void testApp::saveCurrentState()
 		XMLstates.pushTag("LINE", 0);
 		XMLstates.addTag("PTNUM");
 		XMLstates.setValue("PTNUM", nPts);
-		for (int i = 0; i < nPts; ++i) 
+		for (int i = 0; i < nPts; ++i)
 		{
 			int tagNum = XML.addTag("PT");
 			XMLstates.setValue("PT:X", pts[i].x, i);
-			XMLstates.setValue("PT:Y", pts[i].y, i);					
-		}			
+			XMLstates.setValue("PT:Y", pts[i].y, i);
+		}
 		XMLstates.popTag();
-		for (int i = 0; i<MAX_SAMPLES; ++i) 
+		for (int i = 0; i<MAX_SAMPLES; ++i)
 		{
 			int tagNum = 0;
-			if (m_sampleVector[i].size() > 0) 
+			if (m_sampleVector[i].size() > 0)
 			{
 				tagNum = XMLstates.addTag("SAMPLE");
 				XMLstates.pushTag("SAMPLE", tagNum);
@@ -708,7 +708,7 @@ void testApp::saveCurrentState()
 				XMLstates.setValue("NUMBER", i, 0);
 				XMLstates.addTag("AMOUNT");
 				XMLstates.setValue("AMOUNT", (int)m_sampleVector[i].size(), 0);
-				for (unsigned int j = 0; j < m_sampleVector[i].size(); ++j) 
+				for (unsigned int j = 0; j < m_sampleVector[i].size(); ++j)
 				{
 					int dotTagNum = XMLstates.addTag("DOT");
 					float x = m_sampleVector[i][j].x;
@@ -746,7 +746,7 @@ void testApp::clearAll()
 	std::stringstream strstr;
 	strstr << XMLstates.getNumTags("STATE");
 	m_stateLoadMessage = strstr.str();
-	
+
 	for (int i = 0; i < MAX_N_PTS; ++i) {
 		pts[i] = 0;
 	}
