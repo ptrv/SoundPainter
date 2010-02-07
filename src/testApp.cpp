@@ -105,12 +105,15 @@ void testApp::setup(){
 	std::stringstream numstates;
 	numstates << tags;
 	m_stateLoadMessage = numstates.str();
+	m_msgReceiveTime = 0;
 
 	m_currentState = 0;
 
 	m_fontTitle.loadFont("Sudbury_Basin_3D.ttf", 50);
 	m_fontOfVersion.loadFont("mono.ttf", 7);
 	m_fontText.loadFont("mono.ttf", 10);
+	
+	buttonPushed = false;
 }
 // -----------------------------------------------------------------------------
 
@@ -266,7 +269,12 @@ void testApp::draw()
 		}
 		if (debugMode)
 		{
-			ofSetColor(255, 0, 0);
+			if (buttonPushed)
+				ofSetColor(0, 200, 0);
+			else
+				ofSetColor(200, 0, 0);
+			
+
 			//ofNoFill();
 			ofRect(10, ofGetHeight()-130, 20, 20);
 			//ofFill();
@@ -279,10 +287,13 @@ void testApp::draw()
 			strstrstr << m_currentState;
 			strstrstr << ", Saved states: ";
 			strstrstr << m_stateLoadMessage;
+			strstrstr << ", time: ";
+			strstrstr << m_msgReceiveTime;
 			strstrstr << "\n";
 			ofDrawBitmapString(strstrstr.str(), 10, ofGetHeight()-90);
 
 			ofDrawBitmapString(m_debugMessage, 10, ofGetHeight() - 50);
+			
 
 		}
 		if (debugMode || helpMode) {
@@ -301,7 +312,7 @@ void testApp::keyPressed  (int key){
 		{
 			m_run = false;
 			ofxOscMessage m;
-			m.setAddress("/test");
+			m.setAddress("/stop");
 			m.addIntArg(0);
 			sender.sendMessage ( m );
 			setOscDebugMessage(m);
@@ -310,7 +321,7 @@ void testApp::keyPressed  (int key){
 		{
 			m_run = true;
 			ofxOscMessage m;
-			m.setAddress("/test");
+			m.setAddress("/start");
 			m.addIntArg(1);
 			sender.sendMessage ( m );
 			setOscDebugMessage(m);
@@ -460,6 +471,7 @@ void testApp::keyPressed  (int key){
 		if (debugMode) {
 			saveCurrentState();
 			if (debugOutput) {printf("saved current state!\n");}
+			buttonPushed = true;
 		}
 	}
 	else if (key == 'e')
@@ -473,7 +485,9 @@ void testApp::keyPressed  (int key){
 
 //--------------------------------------------------------------
 void testApp::keyReleased  (int key){
-
+	if (buttonPushed) {
+		buttonPushed = false;
+	}
 }
 
 //--------------------------------------------------------------
@@ -508,6 +522,7 @@ void testApp::mousePressed(int x, int y, int button)
 		//ofRect(10, ofGetHeight()-100, 20, 20);
 		int h = ofGetHeight();
 		if (x >= 10 && x <= 30 && y >= (h-130) && y <= (h-110) ) {
+			buttonPushed = true;
 			saveCurrentState();
 			//clearAll();
 			if (debugOutput) {printf("saved current state!\n");}
@@ -534,7 +549,9 @@ void testApp::mousePressed(int x, int y, int button)
 //--------------------------------------------------------------
 void testApp::mouseReleased()
 {
-
+	if (buttonPushed) {
+		buttonPushed = false;
+	}
 
 }
 
@@ -594,6 +611,7 @@ void testApp::setOscDebugMessage(ofxOscMessage message)
 		if (i != message.getNumArgs()-1) {stream << ", ";};
 	}
 	m_debugMessage = stream.str();
+	m_msgReceiveTime = ofGetElapsedTimef();
 }
 
 void testApp::loadState(int state)
