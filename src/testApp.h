@@ -43,6 +43,8 @@ public:
 	void setOscDebugMessage(ofxOscMessage message);
 	void saveCurrentState();
 	void loadState(int state);
+	void loadSettingsFile();
+	void loadStatesFile();
 	void readStates();
 	void clearAll();
 

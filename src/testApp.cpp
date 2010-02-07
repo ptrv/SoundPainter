@@ -41,22 +41,32 @@ void testApp::setup(){
 	m_numSampls = 0;
 	isFullScreen = false;
 	isPlaying = true;
-	debugMode = false;
-	showColors = false;
-	helpMode = false;
+	if (XML.getValue("settings:startup:debugmode", 0))
+		debugMode = true;
+	else
+		debugMode = false;
+	
+	if (XML.getValue("settings:startup:colormode", 0))
+		showColors = true;
+	else
+		showColors = false;
+	
+	if (XML.getValue("settings:startup:helpmode", 0))
+		helpMode = true;
+	else
+		helpMode = false;
+	
 	if(XML.getValue("settings:startup:aboutscreen", 0))
 		usageMode = true;
 	else
 		usageMode = false;
 	
-	int dbgPos = XML.getValue("settings:debug:position", 1);
-	if (dbgPos > 0) 
+	if (XML.getValue("settings:debug:position", 1)) 
 		showOscDebugPosition = true;
 	else 
 		showOscDebugPosition = false;
 
-	int dbgOut = XML.getValue("settings:debug:sysout", 1); 
-	if (dbgOut > 0)
+	if (XML.getValue("settings:debug:sysout", 1))
 		debugOutput = true;
 	else 
 		debugOutput = false;
@@ -101,6 +111,15 @@ void testApp::setup(){
 	m_fontTitle.loadFont("Sudbury_Basin_3D.ttf", 50);
 	m_fontOfVersion.loadFont("mono.ttf", 7);
 	m_fontText.loadFont("mono.ttf", 10);
+}
+// -----------------------------------------------------------------------------
+
+void testApp::loadSettingsFile()
+{
+}
+
+void testApp::loadStatesFile()
+{
 }
 
 //--------------------------------------------------------------
@@ -159,14 +178,14 @@ void testApp::draw()
 		m_fontOfVersion.drawString("version "+m_versionString+", openFrameworks 0061, "+APP_AUTHOR, rmargin, 130);
 		
 		m_fontText.drawString("Paint program where you draw your musical timeline, and", rmargin, 170);
-		m_fontText.drawString("put sampledots on it. Each color represents a sample.", rmargin, 190);
+		m_fontText.drawString("put sampledots on it. Each color dot represents a sample.", rmargin, 190);
 		m_fontText.drawString("You can put many sampledots with the same color on the", rmargin, 210);
 		m_fontText.drawString("canvas. But SoundPainter does not play the samples itself.", rmargin, 230);
 		m_fontText.drawString("OSC messages are sent to a listening Application", rmargin, 250);
 		m_fontText.drawString("(e.g. Pure data, SuperCollider, Max/MSP), which plays the", rmargin, 270);
 		m_fontText.drawString("sound files.", rmargin, 290);
 		
-		m_fontText.drawString("The Osc Messages are:", rmargin, 350);
+		m_fontText.drawString("The OSC messages are:", rmargin, 350);
 		m_fontText.drawString("- Sample trigger:   /play <sample number>", rmargin, 370);
 		m_fontText.drawString("- Dot position:     /fx positionx <actual x> positiony <actual y>", rmargin, 390);
 		
@@ -227,7 +246,7 @@ void testApp::draw()
 			ofSetColor(0, 0, 0);
 			std::stringstream stream;
 			stream << "Keyboard navigation:\n\n";
-			stream << "Start/Stop (play mode/draw mode):---- s\n";
+			stream << "Start/Stop (play mode/draw mode):---- space\n";
 			stream << "Set current sample:------------------ 0 - 9\n";
 			stream << "Remove all dots for current sample:-- r\n";
 			stream << "Remove last dot from current sample:- z\n";
@@ -276,7 +295,7 @@ void testApp::draw()
 void testApp::keyPressed  (int key){
 
 	//if (debugOutput) {printf("Pressed key number: %i\n", key);}
-	if ( key == 's' || key == 'S' )
+	if ( key == ' ' )
 	{
 		if ( m_run )
 		{
@@ -660,58 +679,57 @@ void testApp::loadState(int state)
 
 void testApp::saveCurrentState()
 {
-//	if (m_currentState == 0) 
-//	{
-		lastTagNumber = XMLstates.addTag("STATE");
-		if( XMLstates.pushTag("STATE", lastTagNumber) )
+	lastTagNumber = XMLstates.addTag("STATE");
+	if( XMLstates.pushTag("STATE", lastTagNumber) )
+	{
+		XMLstates.addTag("NUMBER");
+		XMLstates.setValue("NUMBER", lastTagNumber+1, 0);
+		//now we will add a pt tag - with two
+		//children - X and Y
+		XMLstates.addTag("LINE");
+		XMLstates.pushTag("LINE", 0);
+		XMLstates.addTag("PTNUM");
+		XMLstates.setValue("PTNUM", nPts);
+		for (int i = 0; i < nPts; ++i) 
 		{
-			XMLstates.addTag("NUMBER");
-			XMLstates.setValue("NUMBER", lastTagNumber+1, 0);
-			//now we will add a pt tag - with two
-			//children - X and Y
-			XMLstates.addTag("LINE");
-			XMLstates.pushTag("LINE", 0);
-			XMLstates.addTag("PTNUM");
-			XMLstates.setValue("PTNUM", nPts);
-			for (int i = 0; i < nPts; ++i) 
+			int tagNum = XML.addTag("PT");
+			XMLstates.setValue("PT:X", pts[i].x, i);
+			XMLstates.setValue("PT:Y", pts[i].y, i);					
+		}			
+		XMLstates.popTag();
+		for (int i = 0; i<MAX_SAMPLES; ++i) 
+		{
+			int tagNum = 0;
+			if (m_sampleVector[i].size() > 0) 
 			{
-				int tagNum = XML.addTag("PT");
-				XMLstates.setValue("PT:X", pts[i].x, i);
-				XMLstates.setValue("PT:Y", pts[i].y, i);					
-			}			
-			XMLstates.popTag();
-			for (int i = 0; i<MAX_SAMPLES; ++i) 
-			{
-				int tagNum = 0;
-				if (m_sampleVector[i].size() > 0) 
+				tagNum = XMLstates.addTag("SAMPLE");
+				XMLstates.pushTag("SAMPLE", tagNum);
+				XMLstates.addTag("NUMBER");
+				XMLstates.setValue("NUMBER", i, 0);
+				XMLstates.addTag("AMOUNT");
+				XMLstates.setValue("AMOUNT", (int)m_sampleVector[i].size(), 0);
+				for (unsigned int j = 0; j < m_sampleVector[i].size(); ++j) 
 				{
-					tagNum = XMLstates.addTag("SAMPLE");
-					XMLstates.pushTag("SAMPLE", tagNum);
-					XMLstates.addTag("NUMBER");
-					XMLstates.setValue("NUMBER", i, 0);
-					XMLstates.addTag("AMOUNT");
-					XMLstates.setValue("AMOUNT", (int)m_sampleVector[i].size(), 0);
-					for (unsigned int j = 0; j < m_sampleVector[i].size(); ++j) 
-					{
-						int dotTagNum = XMLstates.addTag("DOT");
-						float x = m_sampleVector[i][j].x;
-						float y = m_sampleVector[i][j].y;
-						XMLstates.setValue("DOT:X", x, j);
-						XMLstates.setValue("DOT:Y", y, j);
-					}
-					XMLstates.popTag();
+					int dotTagNum = XMLstates.addTag("DOT");
+					float x = m_sampleVector[i][j].x;
+					float y = m_sampleVector[i][j].y;
+					XMLstates.setValue("DOT:X", x, j);
+					XMLstates.setValue("DOT:Y", y, j);
 				}
+				XMLstates.popTag();
 			}
-			XMLstates.popTag();
 		}
-		XMLstates.saveFile(m_savedStatesFileName);
-		std::stringstream strstr;
-		strstr << XMLstates.getNumTags("STATE");
-		m_stateLoadMessage = strstr.str();
-//	}
+		XMLstates.popTag();
+	}
+	XMLstates.saveFile(m_savedStatesFileName);
+	std::stringstream strstr;
+	strstr << XMLstates.getNumTags("STATE");
+	m_stateLoadMessage = strstr.str();
 }
 void testApp::readStates()
 {
+	XML.loadFile("AppSettings.xml");
+	m_savedStatesFileName = XML.getValue("settings:states:file", "savedStatesDefault.xml");
 	XMLstates.loadFile(m_savedStatesFileName);
 	std::stringstream tags;
 	tags << XMLstates.getNumTags("STATE");

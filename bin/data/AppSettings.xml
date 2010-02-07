@@ -15,5 +15,8 @@
 	</debug>
 	<startup>
 		<aboutscreen>1</aboutscreen>
+		<debugmode>0</debugmode>
+		<colormode>0</colormode>
+		<helpmode>0</helpmode>
 	</startup>
 </settings>
