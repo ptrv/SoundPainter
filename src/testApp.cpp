@@ -197,12 +197,13 @@ void testApp::draw()
 	{
 		ofSetColor(0x000000);
 		ofNoFill();
+		ofSetLineWidth(1.5);
 		ofBeginShape();
 		for (int i = 0; i < nPts; i++){
 			ofVertex(pts[i].x, pts[i].y);
 		}
 		ofEndShape();
-
+		ofSetLineWidth(1.0);
 		if (m_run) {
 			ofBeginShape();
 			ofSetColor(0, 0, 0);
@@ -240,7 +241,17 @@ void testApp::draw()
 				ofRect(40 * i + 20 , 40, 40, 40);
 				std::stringstream strstr;
 				strstr << i;
-				ofDrawBitmapString(strstr.str(), 40*i + 20, 90);
+				if (i == m_currentSample) {
+					ofNoFill();
+					ofSetColor(0, 0, 0);
+					ofSetLineWidth(3.0);
+					ofRect(40 * i + 20 , 40, 40, 40);
+					ofFill();
+					ofSetLineWidth(2.0);
+				}
+				
+				ofDrawBitmapString(strstr.str(), 40*i + 20, 95);
+				ofSetLineWidth(1.0);
 			}
 
 		}
