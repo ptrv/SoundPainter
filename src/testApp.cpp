@@ -175,7 +175,7 @@ void testApp::draw()
 	//=========================================
 	if (usageMode)
 	{
-		int rmargin = 40;
+		int rmargin = 50;
 		ofSetColor(0x000000);
 		m_fontTitle.drawString("SoundPainter", rmargin, 100);
 
@@ -192,6 +192,8 @@ void testApp::draw()
 		m_fontText.drawString("The OSC messages are:", rmargin, 350);
 		m_fontText.drawString("- Sample trigger:   /play <sample number>", rmargin, 370);
 		m_fontText.drawString("- Dot position:     /fx positionx <actual x> positiony <actual y>", rmargin, 390);
+		
+		m_fontText.drawString("To leave this screen press 'return' and for help press 'h'.", rmargin, 470);
 
 		//m_fontText.drawString("", rmargin, 410);
 	}
@@ -275,6 +277,7 @@ void testApp::draw()
 			stream << "Switch between saved states:--------- + / -\n";
 			stream << "Save current state (debug mode):----- w\n";
 			stream << "Reload states (debug mode):---------- e\n";
+			stream << "Show position messages (debug mode):- m\n";
 			stream << "Show about screen:------------------- return\n";
 			stream << "This menu:--------------------------- h\n";
 			ofDrawBitmapString(stream.str(), 10, 150);
@@ -408,6 +411,7 @@ void testApp::keyPressed  (int key)
 	{
 		if (debugOutput) {printf("help mode\n");}
 		helpMode = !helpMode;
+		usageMode = false;
 	}
 	else if (key == 'm')
 	{
