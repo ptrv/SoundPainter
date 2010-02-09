@@ -1,5 +1,7 @@
 h1. SoundPainter
 
+for openFrameworks 0061.
+
 Paint program where you draw your musical timeline, and put sampledots on it. Each color dot represents a sample.You can put many sampledots with the same color on the canvas. But SoundPainter does not play the samples itself. OSC messages are sent to a listening Application (e.g. Pure data, SuperCollider, Max/MSP), which plays the sound files.
 
 The OSC messages are:

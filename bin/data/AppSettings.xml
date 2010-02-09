@@ -15,6 +15,7 @@
 		<sysout>1</sysout>
 	</debug>
 	<startup>
+		<fullscreen>0</fullscreen>
 		<aboutscreen>1</aboutscreen>
 		<debugmode>0</debugmode>
 		<colormode>0</colormode>

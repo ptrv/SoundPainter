@@ -39,8 +39,14 @@ void testApp::setup(){
 	m_run = false;
 	m_BallPos = 0;
 	m_numSampls = 0;
-	isFullScreen = false;
 	isPlaying = true;
+
+	if (XML.getValue("settings:startup:fullscreen", 0))
+		isFullScreen = true;
+	else
+		isFullScreen = false;
+	ofSetFullscreen(isFullScreen);
+	
 	if (XML.getValue("settings:startup:debugmode", 0))
 		debugMode = true;
 	else
@@ -81,9 +87,7 @@ void testApp::setup(){
 		m_sampleColors[i].b = ofRandom(0, 255);
 		m_sampleColors[i].a = 127;
 		m_numSamples[i] = 0;
-//		m_sampleVector[i].push_back(std::vector<ofxVec3f> samples);
 	}
-
 
 	message = "loading "+m_savedStatesFileName;
     std::cout << message << std::endl;
@@ -96,7 +100,6 @@ void testApp::setup(){
 		message = "unable to load "+m_savedStatesFileName+" check data/ folder";
 	}
 	std::cout << message << std::endl;
-
 
 	lastTagNumber = 0;
 
@@ -125,7 +128,8 @@ void testApp::loadStatesFile()
 }
 
 //--------------------------------------------------------------
-void testApp::update(){
+void testApp::update()
+{
 
 	if (m_run)
 	{
@@ -138,14 +142,14 @@ void testApp::update(){
 
 		m.addStringArg("positionx");
 		m.addIntArg( pts[m_BallPos].x );
-		m.addStringArg("positionx");
+		m.addStringArg("positiony");
 		m.addIntArg( pts[m_BallPos].y );
 		sender.sendMessage( m );
+		
 		if (showOscDebugPosition) {
 			setOscDebugMessage(m);
 		}
-
-
+		
 		if ( m_BallPos >= nPts)
 		{
 			m_BallPos = 0;
@@ -162,8 +166,6 @@ void testApp::update(){
 
 	}
 	ofSleepMillis(40);
-
-
 }
 
 //--------------------------------------------------------------
@@ -173,7 +175,7 @@ void testApp::draw()
 	//=========================================
 	if (usageMode)
 	{
-		int rmargin = 20;
+		int rmargin = 40;
 		ofSetColor(0x000000);
 		m_fontTitle.drawString("SoundPainter", rmargin, 100);
 
@@ -315,7 +317,8 @@ void testApp::draw()
 	}
 }
 //--------------------------------------------------------------
-void testApp::keyPressed  (int key){
+void testApp::keyPressed  (int key)
+{
 
 	//if (debugOutput) {printf("Pressed key number: %i\n", key);}
 	if ( key == ' ' )
@@ -375,16 +378,8 @@ void testApp::keyPressed  (int key){
 	}
 	else if ( key == 'F' )
 	{
-		if (isFullScreen)
-		{
-			ofSetFullscreen(false);
-			isFullScreen = false;
-		}
-		else
-		{
-			ofSetFullscreen(true);
-			isFullScreen = true;
-		}
+		isFullScreen = !isFullScreen;
+		ofSetFullscreen(isFullScreen);
 	}
 	else if (key >= 48 && key <=57)
 	{
@@ -393,10 +388,8 @@ void testApp::keyPressed  (int key){
 	}
 	else if (key == 'd')
 	{
-//		if (!helpMode) {
-			if (debugOutput) {printf("debug mode\n");}
-			debugMode = !debugMode;
-//		}
+		if (debugOutput) {printf("debug mode\n");}
+		debugMode = !debugMode;
 	}
 	else if (key == 'f')
 	{
@@ -413,10 +406,8 @@ void testApp::keyPressed  (int key){
 	}
 	else if (key == 'h')
 	{
-//		if (!debugMode) {
-			if (debugOutput) {printf("help mode\n");}
-			helpMode = !helpMode;
-//		}
+		if (debugOutput) {printf("help mode\n");}
+		helpMode = !helpMode;
 	}
 	else if (key == 'm')
 	{
@@ -496,19 +487,22 @@ void testApp::keyPressed  (int key){
 }
 
 //--------------------------------------------------------------
-void testApp::keyReleased  (int key){
+void testApp::keyReleased  (int key)
+{
 	if (buttonPushed) {
 		buttonPushed = false;
 	}
 }
 
 //--------------------------------------------------------------
-void testApp::mouseMoved(int x, int y ){
+void testApp::mouseMoved(int x, int y )
+{
 
 }
 
 //--------------------------------------------------------------
-void testApp::mouseDragged(int x, int y, int button){
+void testApp::mouseDragged(int x, int y, int button)
+{
 	if ( m_run )
 	{
 	}
@@ -522,8 +516,6 @@ void testApp::mouseDragged(int x, int y, int button){
 			nPtsBackup = nPts;
 		}
 	}
-
-
 }
 
 //--------------------------------------------------------------
@@ -571,7 +563,6 @@ void testApp::mouseReleased()
 	if (buttonPushed) {
 		buttonPushed = false;
 	}
-
 }
 
 void testApp::checkPlayPos(int x, int y)
