@@ -17,8 +17,8 @@
 	<startup>
 		<fullscreen>0</fullscreen>
 		<aboutscreen>1</aboutscreen>
-		<debugmode>0</debugmode>
-		<colormode>0</colormode>
+		<debugmode>1</debugmode>
+		<colormode>1</colormode>
 		<helpmode>0</helpmode>
 	</startup>
 </settings>
