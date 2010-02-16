@@ -104,6 +104,7 @@ void testApp::setup(){
 	lastTagNumber = 0;
 
 	int tags = XMLstates.getNumTags("STATE");
+	lastTagNumber = tags;
 	if (debugOutput) {printf("states : %i\n", tags);}
 	std::stringstream numstates;
 	numstates << tags;
@@ -116,6 +117,7 @@ void testApp::setup(){
 	m_fontText.loadFont("mono.ttf", 10);
 	
 	buttonPushed = false;
+	stateTen = 0;
 }
 // -----------------------------------------------------------------------------
 
@@ -302,6 +304,7 @@ void testApp::draw()
 			strstrstr << m_currentState;
 			strstrstr << ", Saved states: ";
 			strstrstr << m_stateLoadMessage;
+			strstrstr << stateTenMsg;
 			strstrstr << "\n";
 			ofDrawBitmapString(strstrstr.str(), 10, ofGetHeight()-90);
 			
@@ -322,8 +325,7 @@ void testApp::draw()
 //--------------------------------------------------------------
 void testApp::keyPressed  (int key)
 {
-
-	//if (debugOutput) {printf("Pressed key number: %i\n", key);}
+	if (debugOutput) {printf("Pressed key number: %i\n", key);}
 	if ( key == ' ' )
 	{
 		if ( m_run )
@@ -441,7 +443,7 @@ void testApp::keyPressed  (int key)
 			m_currentState = 0;
 		}
 		loadState(m_currentState);
-		if (debugOutput) {printf("current state : %i keyup\n", m_currentState);}
+		if (debugOutput) {printf("current state : %i\n", m_currentState);}
 
 	}
 	else if (key == OF_KEY_DOWN)
@@ -467,7 +469,7 @@ void testApp::keyPressed  (int key)
 			m_currentState =  XMLstates.getNumTags("STATE");
 		}
 		loadState(m_currentState);
-		if (debugOutput) {printf("current state : %i keydown\n", m_currentState);}
+		if (debugOutput) {printf("current state : %i\n", m_currentState);}
 	}
 	else if (key == OF_KEY_RETURN)
 	{
@@ -486,6 +488,63 @@ void testApp::keyPressed  (int key)
 		if (debugMode)
 		{
 			readStates();
+		}
+	}
+	else if (key >= 257 && key <= 266)
+	{
+		if (m_currentState == 0) {
+			nPtsBackup = nPts;
+			for (int i = 0; i < MAX_N_PTS; ++i) {
+				ptsBackup[i] = 0;
+			}
+			
+			for (int i = 0; i < nPts; ++i) {
+				ptsBackup[i] = pts[i];
+			}
+			for (int i = 0; i < MAX_SAMPLES; ++i) {
+				m_sampleVectorBackup[i] = m_sampleVector[i];
+				m_numSamplesBackup[i] = m_numSamples[i];
+				m_playStatusesBackup[i] = m_playStatuses[i];
+			}
+		}
+		
+		m_currentState = (key - 256) + stateTen;
+		printf("current state %i\n", m_currentState);
+		printf("lastTagNumber: %i\n", lastTagNumber);
+		if (m_currentState > XMLstates.getNumTags("STATE")) 
+		{
+			m_currentState = lastTagNumber;
+		}
+		loadState(m_currentState);
+		stateTenMsg = "";
+		if (debugOutput) {printf("current state : %i\n", m_currentState);}
+	}
+	else if (key == OF_KEY_F11)
+	{
+		printf("bla %i",(XMLstates.getNumTags("STATE")));
+		if ((XMLstates.getNumTags("STATE") - stateTen) > 10 )
+		{
+			stateTen += 10;
+			std::stringstream str;
+			str << ", +";
+			str << stateTen;
+			str << "...";
+			stateTenMsg = str.str();
+		}
+//		if (stateTen% <= XMLstates.getNumTags("STATE")) {
+//			m_currentState += stateTen
+//		}
+//		m_currentState 
+	}
+	else if (key == OF_KEY_F12) 
+	{
+		if (stateTen != 0){
+			stateTen -= 10;
+			std::stringstream str;
+			str << ", -";
+			str << stateTen;
+			str << "...";			
+			stateTenMsg = str.str();
 		}
 	}
 }
@@ -766,6 +825,7 @@ void testApp::readStates()
 	XMLstates.loadFile(m_savedStatesFileName);
 	std::stringstream tags;
 	tags << XMLstates.getNumTags("STATE");
+	lastTagNumber = XMLstates.getNumTags("STATE");
 	m_stateLoadMessage = tags.str();
 	if(debugOutput){std::cout << "Reloaded states file with " << m_stateLoadMessage << " states" << std::endl;};
 }

@@ -117,6 +117,8 @@ public:
 	std::string m_savedStatesFileName;
 	
 	bool buttonPushed;
+	int stateTen;
+	string stateTenMsg;
 
 };
 

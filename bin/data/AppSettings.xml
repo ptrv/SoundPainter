@@ -16,7 +16,7 @@
 	</debug>
 	<startup>
 		<fullscreen>0</fullscreen>
-		<aboutscreen>1</aboutscreen>
+		<aboutscreen>0</aboutscreen>
 		<debugmode>1</debugmode>
 		<colormode>1</colormode>
 		<helpmode>0</helpmode>
